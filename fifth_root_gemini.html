@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The S₅ Quintic Wall & Solvability Explainer</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}, {left: '\\(', right: '\\)', display: false}, {left: '\\[', right: '\\]', display: true}], throwOnError: false});"></script>
+  <style>
+    :root {
+      --bg-main: #0f172a;
+      --bg-card: #1e293b;
+      --border-card: #334155;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-blue: #38bdf8;
+      --accent-purple: #c084fc;
+      --accent-green: #4ade80;
+      --accent-red: #f87171;
+      --accent-amber: #fbbf24;
+    }
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+    .card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 1rem;
+    }
+    .tab-btn.active {
+      border-bottom: 3px solid var(--accent-blue);
+      color: var(--accent-blue);
+      font-weight: 700;
+      background-color: rgba(56, 189, 248, 0.1);
+    }
+    .glow-blue {
+      box-shadow: 0 0 25px rgba(56, 189, 248, 0.25);
+    }
+    .glow-red {
+      box-shadow: 0 0 25px rgba(248, 113, 113, 0.3);
+    }
+    .glow-green {
+      box-shadow: 0 0 25px rgba(74, 222, 128, 0.25);
+    }
+    @keyframes pulse-glow {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.85; transform: scale(1.02); }
+    }
+    .animate-pulse-glow {
+      animation: pulse-glow 2.5s infinite;
+    }
+  </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+
+  <div class="max-w-6xl mx-auto space-y-6">
+
+    <!-- HEADER & TITLE -->
+    <header class="card p-6 md:p-8 relative overflow-hidden shadow-2xl">
+      <div class="absolute -right-12 -top-12 w-48 h-48 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute right-48 -bottom-12 w-48 h-48 bg-rose-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div class="inline-flex items-center gap-2 px-3 py-1 bg-sky-500/15 text-sky-400 border border-sky-500/30 text-xs font-semibold rounded-full uppercase tracking-wider mb-2">
+            <span>Visual Group Theory & Galois Theory</span>
+          </div>
+          <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight text-white">
+            The <span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-purple-300 to-rose-400">S₅ Quintic Wall</span> & Solvability
+          </h1>
+          <p class="text-slate-300 mt-2 text-sm md:text-base max-w-3xl leading-relaxed">
+            Why general 5th degree equations ($x^5 - x - 1 = 0$) cannot be solved using radicals ($\sqrt{}, \sqrt[3]{}, \sqrt[5]{}$). Discover how symmetry groups break into "abelian chunks"—and why $S_5$ hits an unbreakable non-abelian simple wall at $A_5$.
+          </p>
+        </div>
+        <div class="flex items-center gap-2 bg-slate-900/80 p-3 rounded-xl border border-slate-700 text-xs text-slate-300 shrink-0">
+          <div class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></div>
+          <span>Interactive Master Visualizer</span>
+        </div>
+      </div>
+
+      <!-- NAVIGATION TABS -->
+      <nav class="flex overflow-x-auto border-b border-slate-700 mt-6 -mb-6 gap-1 md:gap-2 text-xs md:text-sm text-slate-400">
+        <button onclick="switchTab('tab-1')" id="btn-tab-1" class="tab-btn active px-4 py-3 font-medium transition whitespace-nowrap rounded-t-lg">
+          1. Roots & Permutations
+        </button>
+        <button onclick="switchTab('tab-2')" id="btn-tab-2" class="tab-btn px-4 py-3 font-medium transition whitespace-nowrap rounded-t-lg">
+          2. Abelian Chunks Lab
+        </button>
+        <button onclick="switchTab('tab-3')" id="btn-tab-3" class="tab-btn px-4 py-3 font-medium transition whitespace-nowrap rounded-t-lg">
+          3. Solvable Factor Towers
+        </button>
+        <button onclick="switchTab('tab-4')" id="btn-tab-4" class="tab-btn px-4 py-3 font-medium transition whitespace-nowrap rounded-t-lg">
+          4. Commutator Engine
+        </button>
+        <button onclick="switchTab('tab-5')" id="btn-tab-5" class="tab-btn px-4 py-3 font-medium transition whitespace-nowrap rounded-t-lg">
+          5. 3D Geometry of A₅
+        </button>
+        <button onclick="switchTab('tab-6')" id="btn-tab-6" class="tab-btn px-4 py-3 font-medium transition whitespace-nowrap rounded-t-lg">
+          6. Galois Radical Lock
+        </button>
+      </nav>
+    </header>
+
+    <!-- MODULE 1: ROOTS & PERMUTATIONS -->
+    <main id="tab-1" class="tab-content block space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Controls & Explanation -->
+        <div class="lg:col-span-5 card p-6 space-y-4">
+          <h2 class="text-xl font-bold text-sky-400 flex items-center gap-2">
+            <span>🧩</span> Polynomial Roots as Swap Targets
+          </h2>
+          <p class="text-slate-300 text-sm leading-relaxed">
+            Every polynomial equation of degree $n$ has $n$ roots ($r_1, r_2, \dots, r_n$) in the complex plane. The <strong>Symmetric Group $S_n$</strong> consists of all possible ways to shuffle (permute) these roots.
+          </p>
+
+          <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 text-xs space-y-2">
+            <p class="text-sky-300 font-mono font-bold">Vieta's Formulas (Coefficient Invariance):</p>
+            <p class="text-slate-300">
+              $P(x) = (x - r_1)(x - r_2)\dots(x - r_n) = x^n - (r_1 + \dots + r_n)x^{n-1} + \dots$
+            </p>
+            <p class="text-slate-400">
+              Shuffling roots changes the order of solutions, but leaves the equation's coefficients completely unchanged!
+            </p>
+          </div>
+
+          <div class="space-y-3 pt-2">
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Select Polynomial Degree ($n$):</label>
+            <div class="flex gap-2">
+              <button onclick="setDegree(2)" id="deg-btn-2" class="deg-btn flex-1 py-2 rounded-lg bg-slate-800 border border-slate-700 text-xs font-bold hover:bg-slate-700 transition">n=2 (S₂)</button>
+              <button onclick="setDegree(3)" id="deg-btn-3" class="deg-btn flex-1 py-2 rounded-lg bg-sky-500/20 border border-sky-500/50 text-sky-300 text-xs font-bold hover:bg-slate-700 transition">n=3 (S₃)</button>
+              <button onclick="setDegree(4)" id="deg-btn-4" class="deg-btn flex-1 py-2 rounded-lg bg-slate-800 border border-slate-700 text-xs font-bold hover:bg-slate-700 transition">n=4 (S₄)</button>
+              <button onclick="setDegree(5)" id="deg-btn-5" class="deg-btn flex-1 py-2 rounded-lg bg-slate-800 border border-slate-700 text-xs font-bold hover:bg-slate-700 transition">n=5 (S₅)</button>
+            </div>
+          </div>
+
+          <div class="space-y-2 pt-2">
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Permutation Actions:</label>
+            <div class="grid grid-cols-2 gap-2" id="action-buttons-container">
+              <!-- JS populates -->
+            </div>
+          </div>
+
+          <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-800 text-xs space-y-2">
+            <div class="flex justify-between items-center text-slate-400 font-mono">
+              <span>Group Size |S_n| = n!</span>
+              <span id="group-size-badge" class="px-2 py-0.5 bg-purple-500/20 text-purple-300 border border-purple-500/30 rounded font-bold">6 elements</span>
+            </div>
+            <p id="group-desc" class="text-slate-300 leading-normal">
+              S₃ has 3! = 6 permutations: 3 reflections (swaps) and 3 rotations.
+            </p>
+          </div>
+        </div>
+
+        <!-- Canvas Display -->
+        <div class="lg:col-span-7 card p-6 flex flex-col justify-between space-y-4">
+          <div class="flex justify-between items-center">
+            <h3 class="font-bold text-slate-200 text-sm">Complex Plane Root Permutation Sandbox</h3>
+            <span class="text-xs text-sky-400 font-mono">Roots of Unity: xⁿ - 1 = 0</span>
+          </div>
+
+          <div class="relative flex justify-center items-center bg-slate-950 rounded-xl border border-slate-800 p-4 overflow-hidden min-h-[300px]">
+            <svg id="roots-svg" class="w-full h-64" viewBox="-150 -140 300 280">
+              <circle cx="0" cy="0" r="100" fill="none" stroke="#334155" stroke-dasharray="4 4" stroke-width="1.5"/>
+              <line x1="-135" y1="0" x2="135" y2="0" stroke="#1e293b" stroke-width="2"/>
+              <line x1="0" y1="-125" x2="0" y2="125" stroke="#1e293b" stroke-width="2"/>
+              <text x="120" y="-8" fill="#64748b" font-size="10" font-family="sans-serif">Re</text>
+              <text x="6" y="-110" fill="#64748b" font-size="10" font-family="sans-serif">Im</text>
+              <g id="svg-roots-group"></g>
+            </svg>
+          </div>
+
+          <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-800 text-xs font-mono text-slate-300 flex items-center justify-between flex-wrap gap-2">
+            <span class="text-slate-400">Current Root Order & Cycle:</span>
+            <div class="flex items-center gap-3">
+              <span id="roots-order-display" class="font-bold text-amber-300 text-sm">[ r₁, r₂, r₃ ]</span>
+              <span id="cycle-notation-badge" class="px-2.5 py-1 bg-sky-500/20 text-sky-300 border border-sky-500/30 rounded text-xs">e (identity)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- MODULE 2: ABELIAN CHUNKS LAB -->
+    <main id="tab-2" class="tab-content hidden space-y-6">
+      <div class="card p-6 space-y-4">
+        <h2 class="text-xl font-bold text-purple-400 flex items-center gap-2">
+          <span>🔄</span> What is an "Abelian Chunk"? (Commutativity vs Scrambling)
+        </h2>
+        <p class="text-slate-300 text-sm leading-relaxed max-w-4xl">
+          An <strong>Abelian group</strong> is a group where operations are commutative: performing Action A then Action B produces the exact same result as performing Action B then Action A ($A \circ B = B \circ A$).
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+          <!-- Clock Analogy (Abelian) -->
+          <div class="bg-slate-900/90 p-5 rounded-xl border border-slate-800 space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="font-bold text-emerald-400 text-base">1. Clock Turns (Abelian / Commutative)</h3>
+              <span class="px-2.5 py-0.5 bg-emerald-500/20 text-emerald-300 text-xs rounded-full font-bold border border-emerald-500/30">A ∘ B = B ∘ A</span>
+            </div>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              Turning a clock hand by +3 hours then +5 hours yields +8 hours (or 8 o'clock). Doing +5 hours then +3 hours gives the exact same 8 o'clock!
+            </p>
+            <div class="flex items-center justify-center p-4 bg-slate-950 rounded-xl border border-emerald-900/40 space-x-4">
+              <div class="text-center">
+                <span class="block text-[11px] text-slate-400 uppercase font-semibold">A then B</span>
+                <span class="text-base font-bold text-emerald-400">+3h → +5h = +8h</span>
+              </div>
+              <span class="text-xl font-bold text-slate-500 font-mono">=</span>
+              <div class="text-center">
+                <span class="block text-[11px] text-slate-400 uppercase font-semibold">B then A</span>
+                <span class="text-base font-bold text-emerald-400">+5h → +3h = +8h</span>
+              </div>
+            </div>
+            <p class="text-[11px] text-emerald-300/80 italic">
+              Radical signs ($\sqrt[n]{\cdot}$) strictly generate abelian cyclic groups ($\mathbb{Z}_n$). They are "clock turn" operations!
+            </p>
+          </div>
+
+          <!-- Permutation Analogy (Non-Abelian) -->
+          <div class="bg-slate-900/90 p-5 rounded-xl border border-slate-800 space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="font-bold text-rose-400 text-base">2. Root Swaps (Non-Abelian / Order Matters)</h3>
+              <span class="px-2.5 py-0.5 bg-rose-500/20 text-rose-300 text-xs rounded-full font-bold border border-rose-500/30">A ∘ B ≠ B ∘ A</span>
+            </div>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              Try swapping roots! Action A: Swap (r₁, r₂). Action B: Swap (r₂, r₃). Watch how doing A then B produces a completely different root arrangement than B then A!
+            </p>
+            <button onclick="testCommutativity()" class="w-full py-2.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-purple-900/30">
+              ⚡ Execute Commutativity Test (A ∘ B vs B ∘ A)
+            </button>
+            <p class="text-[11px] text-rose-300/80 italic">
+              When group elements tangle, we need to test their <strong>commutator</strong> $[A, B] = A B A^{-1} B^{-1}$.
+            </p>
+          </div>
+        </div>
+
+        <!-- Commutator Experiment Result Box -->
+        <div id="commutator-result-box" class="bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-4">
+          <div class="flex justify-between items-center flex-wrap gap-2">
+            <h4 class="font-bold text-amber-300 text-sm">Interactive Commutator Calculator: [A, B] = A · B · A⁻¹ · B⁻¹</h4>
+            <span id="comm-badge" class="px-3 py-1 rounded-full text-xs font-bold bg-slate-800 text-slate-400">Ready</span>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
+            <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-800 space-y-1">
+              <span class="text-slate-400 font-sans block text-[11px]">Order 1 (Perform Action A then B):</span>
+              <span id="ab-result" class="text-sky-300 font-bold text-sm">[1, 2, 3, 4, 5]</span>
+            </div>
+            <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-800 space-y-1">
+              <span class="text-slate-400 font-sans block text-[11px]">Order 2 (Perform Action B then A):</span>
+              <span id="ba-result" class="text-rose-300 font-bold text-sm">[1, 2, 3, 4, 5]</span>
+            </div>
+          </div>
+          <p id="comm-explanation" class="text-xs text-slate-300 leading-relaxed">
+            Click the button above to execute swap actions A = (1 2) and B = (2 3) on the list [1, 2, 3, 4, 5] and observe the non-commutative difference!
+          </p>
+        </div>
+      </div>
+    </main>
+
+    <!-- MODULE 3: SOLVABLE FACTOR TOWER -->
+    <main id="tab-3" class="tab-content hidden space-y-6">
+      <div class="card p-6 space-y-4">
+        <h2 class="text-xl font-bold text-sky-400 flex items-center gap-2">
+          <span>🏰</span> The Solvable Factorization Tower ($S_2 \to S_5$)
+        </h2>
+        <p class="text-slate-300 text-sm leading-relaxed">
+          Galois proved that a polynomial equation can be solved by radicals <strong>if and only if</strong> its symmetry group can be sliced down to $\{1\}$ using only <strong>Abelian factor groups</strong> ($\mathbb{Z}_p$).
+        </p>
+
+        <div class="flex gap-2 pt-2">
+          <button onclick="renderTower(2)" id="tower-btn-2" class="tower-btn flex-1 py-2 rounded-lg bg-slate-800 border border-slate-700 text-xs font-bold hover:bg-slate-700 transition">S₂ Tower</button>
+          <button onclick="renderTower(3)" id="tower-btn-3" class="tower-btn flex-1 py-2 rounded-lg bg-slate-800 border border-slate-700 text-xs font-bold hover:bg-slate-700 transition">S₃ Tower</button>
+          <button onclick="renderTower(4)" id="tower-btn-4" class="tower-btn flex-1 py-2 rounded-lg bg-slate-800 border border-slate-700 text-xs font-bold hover:bg-slate-700 transition">S₄ Tower</button>
+          <button onclick="renderTower(5)" id="tower-btn-5" class="tower-btn flex-1 py-2 rounded-lg bg-rose-500/20 border border-rose-500/40 text-rose-300 text-xs font-bold hover:bg-slate-700 transition">S₅ Wall</button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 pt-2">
+          <!-- Visual Tower Container -->
+          <div class="md:col-span-6 bg-slate-950 p-6 rounded-xl border border-slate-800 min-h-[350px] flex flex-col items-center justify-center space-y-3" id="tower-visual-container">
+            <!-- Dynamic elements generated by JS -->
+          </div>
+
+          <!-- Explanatory Card -->
+          <div class="md:col-span-6 bg-slate-900/90 p-5 rounded-xl border border-slate-800 space-y-4 flex flex-col justify-between">
+            <div id="tower-info-card" class="space-y-3">
+              <!-- JS populates info -->
+            </div>
+            <div class="p-4 bg-purple-950/30 border border-purple-500/30 rounded-xl text-xs space-y-2">
+              <span class="font-bold text-purple-300 block uppercase tracking-wider">Why A₅ is an Unbreakable Brick Wall:</span>
+              <p class="text-slate-300 leading-relaxed">
+                $A_5$ has size 60 and is a <strong>SIMPLE GROUP</strong> (it contains no non-trivial normal subgroups). Furthermore, $A_5$ is non-abelian. Therefore, you cannot slice $A_5$ any further into abelian chunks!
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- MODULE 4: COMMUTATOR ELEVATOR -->
+    <main id="tab-4" class="tab-content hidden space-y-6">
+      <div class="card p-6 space-y-4">
+        <h2 class="text-xl font-bold text-rose-400 flex items-center gap-2">
+          <span>🛗</span> The Commutator Engine Elevator ($[G, G]$ Derived Series)
+        </h2>
+        <p class="text-slate-300 text-sm leading-relaxed">
+          The derived series $G^{(0)} = G, G^{(1)} = [G, G], G^{(2)} = [[G,G],[G,G]], \dots$ strips away all commutative parts like peeling an onion. If it reaches $\{1\}$, the group is <strong>SOLVABLE</strong>. If it gets trapped, it is <strong>UNSOLVABLE</strong>!
+        </p>
+
+        <div class="flex gap-3">
+          <button onclick="runElevator(4)" id="elev-btn-4" class="flex-1 py-3 bg-indigo-600/30 hover:bg-indigo-600/50 border border-indigo-500/40 text-indigo-200 text-xs font-bold rounded-xl transition shadow">
+            ▶ Drop S₄ Elevator (Solvable)
+          </button>
+          <button onclick="runElevator(5)" id="elev-btn-5" class="flex-1 py-3 bg-rose-600/30 hover:bg-rose-600/50 border border-rose-500/40 text-rose-200 text-xs font-bold rounded-xl transition shadow">
+            ▶ Drop S₅ Elevator (A₅ Trap!)
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 pt-2">
+          <!-- Elevator Shaft Visual -->
+          <div class="md:col-span-6 bg-slate-950 p-6 rounded-xl border border-slate-800 space-y-4">
+            <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider flex justify-between">
+              <span>Derived Series Elevator Shaft</span>
+              <span id="elev-status-badge" class="text-sky-400 font-mono">Select Group</span>
+            </h3>
+
+            <div id="elevator-shaft" class="space-y-2 font-mono text-xs">
+              <div id="floor-0" class="p-3 bg-slate-900 border border-slate-800 rounded-lg flex justify-between items-center transition-all">
+                <span>Floor 0: G = S_n</span>
+                <span class="text-slate-500 font-sans">Initial Group</span>
+              </div>
+              <div id="floor-1" class="p-3 bg-slate-900 border border-slate-800 rounded-lg flex justify-between items-center transition-all opacity-50">
+                <span>Floor 1: [G, G] = A_n</span>
+                <span class="text-slate-500 font-sans">1st Commutator</span>
+              </div>
+              <div id="floor-2" class="p-3 bg-slate-900 border border-slate-800 rounded-lg flex justify-between items-center transition-all opacity-50">
+                <span>Floor 2: [[G,G],[G,G]]</span>
+                <span class="text-slate-500 font-sans">2nd Commutator</span>
+              </div>
+              <div id="floor-3" class="p-3 bg-slate-900 border border-slate-800 rounded-lg flex justify-between items-center transition-all opacity-50">
+                <span>Ground Floor: {e}</span>
+                <span class="text-slate-500 font-sans font-bold">Identity Element</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Log & Telemetry -->
+          <div class="md:col-span-6 bg-slate-900/90 p-5 rounded-xl border border-slate-800 space-y-4 flex flex-col justify-between">
+            <div>
+              <h4 class="font-bold text-slate-200 text-sm mb-2">Elevator Telemetry Log</h4>
+              <div id="elevator-log" class="bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono text-xs text-slate-300 space-y-2 min-h-[180px]">
+                <p class="text-slate-500">Click a button above to run the derived series elevator test...</p>
+              </div>
+            </div>
+            <div id="elevator-conclusion" class="p-3.5 bg-slate-950 rounded-xl border border-slate-800 text-xs text-slate-300">
+              <span class="font-bold text-amber-400 block mb-1">Algebraic Theorem:</span>
+              <span>Every element in $A_5$ is a commutator of elements in $A_5$. Thus $[A_5, A_5] = A_5$. The elevator gets trapped on $A_5$ forever!</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- MODULE 5: 3D GEOMETRY OF A5 -->
+    <main id="tab-5" class="tab-content hidden space-y-6">
+      <div class="card p-6 space-y-4">
+        <h2 class="text-xl font-bold text-rose-400 flex items-center gap-2">
+          <span>⚽</span> Geometric Intuition: $A_5$ as the 3D Regular Icosahedron
+        </h2>
+        <p class="text-slate-300 text-sm leading-relaxed">
+          Why is $A_5$ (size 60) so unbreakable? Mathematically, $A_5$ is isomorphic to the <strong>rotational symmetry group of a regular 3D Icosahedron</strong> (a 20-faced polyhedron). Symmetries in 3D space interact tightly across all axes, preventing any slice into independent 1D clock turns!
+        </p>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-2">
+          <!-- 3D Canvas -->
+          <div class="lg:col-span-7 bg-slate-950 p-6 rounded-xl border border-slate-800 flex flex-col items-center justify-center space-y-4 relative min-h-[360px]">
+            <canvas id="icosahedron-canvas" width="440" height="320" class="cursor-grab active:cursor-grabbing w-full max-w-md h-auto"></canvas>
+            <div class="flex gap-2">
+              <button onclick="toggleAutoRotate()" id="autorotate-btn" class="px-3.5 py-1.5 bg-sky-500/20 text-sky-300 hover:bg-sky-500/30 border border-sky-500/40 text-xs rounded-lg font-medium transition">
+                Pause Auto-Rotate
+              </button>
+              <button onclick="resetIcosahedron()" class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs rounded-lg font-medium text-slate-300 transition">
+                Reset 3D View
+              </button>
+            </div>
+            <span class="text-[10px] text-slate-500 absolute bottom-3 right-4">Drag canvas to rotate manually</span>
+          </div>
+
+          <!-- Geometry Explanation -->
+          <div class="lg:col-span-5 bg-slate-900/90 p-5 rounded-xl border border-slate-800 space-y-4 flex flex-col justify-between">
+            <div class="space-y-3">
+              <h3 class="font-bold text-slate-100 text-base">The 60 Rotational Symmetries of $A_5$</h3>
+              <ul class="text-xs text-slate-300 space-y-2 leading-relaxed">
+                <li class="flex items-start gap-2">
+                  <span class="text-rose-400 font-bold">•</span>
+                  <span><strong>1 Identity</strong>: 0° rotation (1 orientation).</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-sky-400 font-bold">•</span>
+                  <span><strong>12 Vertices (6 axes)</strong>: 5-fold rotations (72°, 144°, 216°, 288°) → 24 symmetries.</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-purple-400 font-bold">•</span>
+                  <span><strong>20 Faces (10 axes)</strong>: 3-fold rotations (120°, 240°) → 20 symmetries.</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-amber-400 font-bold">•</span>
+                  <span><strong>30 Edges (15 axes)</strong>: 2-fold rotations (180°) → 15 symmetries.</span>
+                </li>
+                <li class="flex items-start gap-2 border-t border-slate-800 pt-2 font-bold text-emerald-400">
+                  <span>Total</span>: 1 + 24 + 20 + 15 = <strong>60 total 3D orientations</strong> ($|A_5| = 60$).
+                </li>
+              </ul>
+            </div>
+
+            <div class="p-3.5 bg-slate-950 rounded-xl border border-rose-900/40 text-xs text-rose-300 space-y-1">
+              <span class="font-bold block text-rose-400">Indivisible Geometric Atom:</span>
+              <p>
+                Any rotation around a face can be combined with an edge rotation to create a vertex rotation. They are completely locked into 3D geometry! No sub-plane stays isolated.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- MODULE 6: GALOIS RADICAL KEY LOCK -->
+    <main id="tab-6" class="tab-content hidden space-y-6">
+      <div class="card p-6 space-y-4">
+        <h2 class="text-xl font-bold text-emerald-400 flex items-center gap-2">
+          <span>🔑</span> The Galois Gate: Radical Keys vs Symmetry Locks
+        </h2>
+        <p class="text-slate-300 text-sm leading-relaxed">
+          Why does group solvability dictate whether a polynomial formula exists? Taking an $n$-th root ($\sqrt[n]{a}$) is algebraically equivalent to creating a <strong>Cyclic Extension Field</strong> ($\mathbb{Z}_n$). Radical signs are "Abelian Keys".
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 pt-2">
+          <!-- Control Panel -->
+          <div class="md:col-span-5 bg-slate-900/90 p-5 rounded-xl border border-slate-800 space-y-4">
+            <h3 class="font-bold text-slate-200 text-sm">Polynomial Lock Selector</h3>
+
+            <div class="space-y-2">
+              <label class="block text-xs font-semibold text-slate-400 uppercase">Select Equation Degree:</label>
+              <select id="equation-select" onchange="updateGaloisGate()" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-xs font-bold text-sky-300 focus:outline-none focus:border-sky-500">
+                <option value="2">Degree 2: Quadratic (ax² + bx + c = 0) → S₂</option>
+                <option value="3">Degree 3: Cubic (ax³ + bx² + cx + d = 0) → S₃</option>
+                <option value="4">Degree 4: Quartic (ax⁴ + ... = 0) → S₄</option>
+                <option value="5" selected>Degree 5: General Quintic (x⁵ - x - 1 = 0) → S₅</option>
+              </select>
+            </div>
+
+            <div id="gate-diagram" class="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-3 min-h-[150px]">
+              <!-- Dynamic JS content -->
+            </div>
+
+            <button onclick="runGateUnlockTest()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-extrabold uppercase tracking-wider transition glow-green">
+              🔑 Attempt Radical Unlock
+            </button>
+          </div>
+
+          <!-- Theory Cards -->
+          <div class="md:col-span-7 bg-slate-900/90 p-5 rounded-xl border border-slate-800 space-y-4 flex flex-col justify-between">
+            <div class="space-y-3 text-xs text-slate-300 leading-relaxed">
+              <h4 class="font-bold text-base text-sky-400">The Great Galois Correspondence</h4>
+              <p>
+                Évariste Galois established an exact bridge between polynomial equations and group theory:
+              </p>
+              <div class="grid grid-cols-2 gap-3 pt-1 font-mono">
+                <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                  <span class="text-emerald-400 font-bold block mb-1">Field Extension (Algebra)</span>
+                  <span>Radical Extraction ($\sqrt[n]{\cdot}$)</span>
+                </div>
+                <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                  <span class="text-sky-400 font-bold block mb-1">Galois Group (Symmetry)</span>
+                  <span>Cyclic Factor ($\mathbb{Z}_n$, Abelian)</span>
+                </div>
+              </div>
+              <p>
+                Because radical operations strictly produce <strong>abelian quotient steps</strong>, they can only dissolve symmetry groups that break into abelian chunks. Because general 5th degree equations have Galois group $S_5$, hitting the non-abelian simple subgroup $A_5$ blocks radical key extraction forever!
+              </p>
+            </div>
+
+            <div class="p-3.5 bg-slate-950 rounded-xl border border-slate-800 text-xs flex justify-between items-center text-slate-400">
+              <span>Abel-Ruffini Theorem (1824)</span>
+              <span class="text-emerald-400 font-bold">Proven via S₅ unsolvability</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="text-center text-xs text-slate-500 py-4 border-t border-slate-800">
+      Visual Explainer created for non-group theory audiences • Powered by HTML5 Canvas & Tailwind CSS
+    </footer>
+
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    // --- TAB NAVIGATION ---
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => {
+        el.classList.add('hidden');
+        el.classList.remove('block');
+      });
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+      document.getElementById(tabId).classList.remove('hidden');
+      document.getElementById(tabId).classList.add('block');
+
+      const btnMap = {
+        'tab-1': 'btn-tab-1', 'tab-2': 'btn-tab-2', 'tab-3': 'btn-tab-3',
+        'tab-4': 'btn-tab-4', 'tab-5': 'btn-tab-5', 'tab-6': 'btn-tab-6'
+      };
+      if (btnMap[tabId]) document.getElementById(btnMap[tabId]).classList.add('active');
+
+      if (tabId === 'tab-1') renderRootsSVG();
+      if (tabId === 'tab-5') setTimeout(initIcosahedron, 50);
+    }
+
+    // --- TAB 1: ROOTS SVG & PERMUTATIONS ---
+    let currentDegree = 3;
+    let rootPermutation = [1, 2, 3];
+
+    function setDegree(deg) {
+      currentDegree = deg;
+      document.querySelectorAll('.deg-btn').forEach(btn => {
+        btn.classList.remove('bg-sky-500/20', 'border-sky-500/50', 'text-sky-300');
+        btn.classList.add('bg-slate-800', 'border-slate-700');
+      });
+      document.getElementById(`deg-btn-${deg}`).classList.add('bg-sky-500/20', 'border-sky-500/50', 'text-sky-300');
+
+      rootPermutation = Array.from({length: deg}, (_, i) => i + 1);
+
+      const fact = [1, 1, 2, 6, 24, 120];
+      document.getElementById('group-size-badge').innerText = `${fact[deg]} elements`;
+
+      const descs = {
+        2: "S₂ has 2! = 2 permutations: identity and swapping the 2 roots.",
+        3: "S₃ has 3! = 6 permutations: 3 reflections (swaps) and 3 rotations.",
+        4: "S₄ has 4! = 24 permutations: breakdown via A₄ and Klein four-group V₄.",
+        5: "S₅ has 5! = 120 permutations: contains A₅ (size 60), which is SIMPLE and non-abelian!"
+      };
+      document.getElementById('group-desc').innerText = descs[deg];
+
+      renderPermButtons();
+      renderRootsSVG();
+    }
+
+    function renderPermButtons() {
+      const container = document.getElementById('action-buttons-container');
+      container.innerHTML = '';
+
+      if (currentDegree === 2) {
+        container.innerHTML = `
+          <button onclick="swapRoots(0, 1)" class="col-span-2 px-3 py-2 bg-slate-800 border border-slate-700 hover:border-sky-500 rounded-lg text-xs font-medium transition text-sky-300">
+            Swap (r₁, r₂)
+          </button>
+        `;
+      } else if (currentDegree === 3) {
+        container.innerHTML = `
+          <button onclick="swapRoots(0, 1)" class="px-3 py-2 bg-slate-800 border border-slate-700 hover:border-sky-500 rounded-lg text-xs font-medium transition text-sky-300">
+            Swap (r₁, r₂)
+          </button>
+          <button onclick="swapRoots(1, 2)" class="px-3 py-2 bg-slate-800 border border-slate-700 hover:border-purple-500 rounded-lg text-xs font-medium transition text-purple-300">
+            Swap (r₂, r₃)
+          </button>
+          <button onclick="rotateRoots()" class="col-span-2 px-3 py-2 bg-slate-800 border border-slate-700 hover:border-emerald-500 rounded-lg text-xs font-medium transition text-emerald-300">
+            Rotate Cyclic (r₁ → r₂ → r₃)
+          </button>
+        `;
+      } else if (currentDegree === 4) {
+        container.innerHTML = `
+          <button onclick="swapRoots(0, 1)" class="px-3 py-2 bg-slate-800 border border-slate-700 hover:border-sky-500 rounded-lg text-xs font-medium transition text-sky-300">
+            Swap (r₁, r₂)
+          </button>
+          <button onclick="swapRoots(2, 3)" class="px-3 py-2 bg-slate-800 border border-slate-700 hover:border-purple-500 rounded-lg text-xs font-medium transition text-purple-300">
+            Swap (r₃, r₄)
+          </button>
+          <button onclick="rotateRoots()" class="col-span-2 px-3 py-2 bg-slate-800 border border-slate-700 hover:border-emerald-500 rounded-lg text-xs font-medium transition text-emerald-300">
+            Rotate All 4 Roots
+          </button>
+        `;
+      } else {
+        container.innerHTML = `
+          <button onclick="swapRoots(0, 1)" class="px-3 py-2 bg-slate-800 border border-slate-700 hover:border-sky-500 rounded-lg text-xs font-medium transition text-sky-300">
+            Swap (r₁, r₂)
+          </button>
+          <button onclick="swapRoots(3, 4)" class="px-3 py-2 bg-slate-800 border border-slate-700 hover:border-rose-500 rounded-lg text-xs font-medium transition text-rose-300">
+            Swap (r₄, r₅)
+          </button>
+          <button onclick="rotateRoots()" class="col-span-2 px-3 py-2 bg-slate-800 border border-slate-700 hover:border-amber-500 rounded-lg text-xs font-medium transition text-amber-300">
+            Rotate All 5 Roots
+          </button>
+        `;
+      }
+    }
+
+    function swapRoots(i, j) {
+      if (i < currentDegree && j < currentDegree) {
+        const tmp = rootPermutation[i];
+        rootPermutation[i] = rootPermutation[j];
+        rootPermutation[j] = tmp;
+        renderRootsSVG();
+      }
+    }
+
+    function rotateRoots() {
+      const last = rootPermutation.pop();
+      rootPermutation.unshift(last);
+      renderRootsSVG();
+    }
+
+    function renderRootsSVG() {
+      const group = document.getElementById('svg-roots-group');
+      if (!group) return;
+      group.innerHTML = '';
+
+      const radius = 90;
+      const colors = ['#38bdf8', '#c084fc', '#4ade80', '#fbbf24', '#f87171'];
+
+      for (let i = 0; i < currentDegree; i++) {
+        const angle = (2 * Math.PI * i / currentDegree) - Math.PI / 2;
+        const x = radius * Math.cos(angle);
+        const y = radius * Math.sin(angle);
+
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', '0'); line.setAttribute('y1', '0');
+        line.setAttribute('x2', x); line.setAttribute('y2', y);
+        line.setAttribute('stroke', '#334155'); line.setAttribute('stroke-width', '1.5');
+        group.appendChild(line);
+
+        const rootVal = rootPermutation[i];
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', x); circle.setAttribute('cy', y);
+        circle.setAttribute('r', '17');
+        circle.setAttribute('fill', colors[(rootVal - 1) % colors.length]);
+        circle.setAttribute('stroke', '#ffffff'); circle.setAttribute('stroke-width', '2');
+        group.appendChild(circle);
+
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', x); text.setAttribute('y', y + 4);
+        text.setAttribute('fill', '#0f172a'); text.setAttribute('font-size', '11');
+        text.setAttribute('font-weight', 'bold'); text.setAttribute('text-anchor', 'middle');
+        text.textContent = `r${rootVal}`;
+        group.appendChild(text);
+      }
+
+      document.getElementById('roots-order-display').innerText = `[ ${rootPermutation.map(v => 'r' + v).join(', ')} ]`;
+
+      // Cycle notation calculation
+      let cycleText = "e (identity)";
+      const isIdentity = rootPermutation.every((v, idx) => v === idx + 1);
+      if (!isIdentity) {
+        cycleText = `Permutation: (${rootPermutation.join(' ')})`;
+      }
+      document.getElementById('cycle-notation-badge').innerText = cycleText;
+    }
+
+    // --- TAB 2: COMMUTATIVITY LAB ---
+    function testCommutativity() {
+      const initial = [1, 2, 3, 4, 5];
+
+      // Action A: Swap (1, 2)
+      // Action B: Swap (2, 3)
+
+      // Order 1: A then B
+      let ab = [...initial];
+      let tmp = ab[0]; ab[0] = ab[1]; ab[1] = tmp; // A
+      tmp = ab[1]; ab[1] = ab[2]; ab[2] = tmp;     // B
+
+      // Order 2: B then A
+      let ba = [...initial];
+      tmp = ba[1]; ba[1] = ba[2]; ba[2] = tmp;     // B
+      tmp = ba[0]; ba[0] = ba[1]; ba[1] = tmp;     // A
+
+      document.getElementById('ab-result').innerText = `[ ${ab.join(', ')} ]`;
+      document.getElementById('ba-result').innerText = `[ ${ba.join(', ')} ]`;
+
+      const badge = document.getElementById('comm-badge');
+      badge.innerText = "NON-COMMUTATIVE (A ∘ B ≠ B ∘ A)";
+      badge.className = "px-3 py-1 rounded-full text-xs font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40";
+
+      document.getElementById('comm-explanation').innerHTML = `
+        <strong class="text-rose-400">Result Difference:</strong> Action A then B yields <code class="text-sky-300">[2, 3, 1, 4, 5]</code>, while Action B then A yields <code class="text-rose-300">[3, 1, 2, 4, 5]</code>.<br>
+        The commutator $[A, B] = A B A^{-1} B^{-1}$ measures this exact disparity! In $A_5$, non-commutative commutators loop back into $A_5$ itself.
+      `;
+    }
+
+    // --- TAB 3: SOLVABLE TOWER ---
+    function renderTower(n) {
+      document.querySelectorAll('.tower-btn').forEach(b => {
+        b.classList.remove('bg-sky-500/20', 'border-sky-500/50', 'text-sky-300');
+        b.classList.add('bg-slate-800', 'border-slate-700');
+      });
+      document.getElementById(`tower-btn-${n}`).classList.add('bg-sky-500/20', 'border-sky-500/50', 'text-sky-300');
+
+      const container = document.getElementById('tower-visual-container');
+      const infoCard = document.getElementById('tower-info-card');
+
+      if (n === 2) {
+        container.innerHTML = `
+          <div class="w-full max-w-sm p-4 bg-slate-900 border border-slate-700 rounded-xl text-center space-y-1">
+            <span class="text-xs text-sky-400 font-bold">Initial Group</span>
+            <div class="text-lg font-bold text-white">S₂ (size 2)</div>
+          </div>
+          <div class="text-emerald-400 font-bold text-xs">↓ Quotient Step: ℤ₂ (Abelian)</div>
+          <div class="w-full max-w-sm p-4 bg-emerald-950/60 border border-emerald-500/50 rounded-xl text-center space-y-1 glow-green">
+            <span class="text-xs text-emerald-400 font-bold">Bottom Level</span>
+            <div class="text-lg font-bold text-emerald-200">{1} (Trivial)</div>
+          </div>
+        `;
+        infoCard.innerHTML = `
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <h3 class="font-bold text-lg text-emerald-400">S₂ Breakdown</h3>
+            <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">✓ SOLVABLE</span>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            S₂ splits in 1 step into ℤ₂. Since ℤ₂ is abelian, quadratic equations are easily solved by square radicals ($\sqrt{b^2-4ac}$).
+          </p>
+        `;
+      } else if (n === 3) {
+        container.innerHTML = `
+          <div class="w-full max-w-sm p-3 bg-slate-900 border border-slate-700 rounded-xl text-center">
+            <div class="text-base font-bold text-white">S₃ (size 6)</div>
+          </div>
+          <div class="text-emerald-400 font-bold text-xs">↓ Factor: ℤ₂ (Abelian)</div>
+          <div class="w-full max-w-sm p-3 bg-slate-900 border border-slate-700 rounded-xl text-center">
+            <div class="text-base font-bold text-sky-300">A₃ (size 3)</div>
+          </div>
+          <div class="text-emerald-400 font-bold text-xs">↓ Factor: ℤ₃ (Abelian)</div>
+          <div class="w-full max-w-sm p-3 bg-emerald-950/60 border border-emerald-500/50 rounded-xl text-center glow-green">
+            <div class="text-base font-bold text-emerald-200">{1} (Trivial)</div>
+          </div>
+        `;
+        infoCard.innerHTML = `
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <h3 class="font-bold text-lg text-emerald-400">S₃ Breakdown</h3>
+            <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">✓ SOLVABLE</span>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            S₃ peels into A₃ (size 3) with factor ℤ₂, then A₃ peels to {1} with factor ℤ₃. Both ℤ₂ and ℤ₃ are abelian clock turns! Cardano's formula uses square and cube roots.
+          </p>
+        `;
+      } else if (n === 4) {
+        container.innerHTML = `
+          <div class="w-full max-w-sm p-2.5 bg-slate-900 border border-slate-700 rounded-lg text-center text-xs font-bold">S₄ (size 24)</div>
+          <div class="text-emerald-400 font-bold text-[10px]">↓ ℤ₂ (Abelian)</div>
+          <div class="w-full max-w-sm p-2.5 bg-slate-900 border border-slate-700 rounded-lg text-center text-xs font-bold text-sky-300">A₄ (size 12)</div>
+          <div class="text-emerald-400 font-bold text-[10px]">↓ ℤ₃ (Abelian)</div>
+          <div class="w-full max-w-sm p-2.5 bg-slate-900 border border-slate-700 rounded-lg text-center text-xs font-bold text-indigo-300">V₄ Klein four (size 4)</div>
+          <div class="text-emerald-400 font-bold text-[10px]">↓ ℤ₂ × ℤ₂ (Abelian)</div>
+          <div class="w-full max-w-sm p-2.5 bg-emerald-950/60 border border-emerald-500/50 rounded-lg text-center text-xs font-bold text-emerald-200 glow-green">{1} (Trivial)</div>
+        `;
+        infoCard.innerHTML = `
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <h3 class="font-bold text-lg text-emerald-400">S₄ Breakdown</h3>
+            <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">✓ SOLVABLE</span>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            S₄ peels through A₄ and the Klein four-group V₄. Every quotient factor is abelian. Thus Ferrari's quartic formula works with nested square and cube radicals!
+          </p>
+        `;
+      } else {
+        container.innerHTML = `
+          <div class="w-full max-w-sm p-3 bg-slate-900 border border-slate-700 rounded-xl text-center">
+            <div class="text-base font-bold text-white">S₅ (size 120)</div>
+          </div>
+          <div class="text-emerald-400 font-bold text-xs">↓ Step 1: ℤ₂ (Abelian)</div>
+          <div class="w-full max-w-sm p-4 bg-rose-950/80 border border-rose-500 rounded-xl text-center space-y-1 glow-red animate-pulse-glow">
+            <span class="text-xs text-rose-400 font-extrabold tracking-wider">💥 BRICK WALL HIT!</span>
+            <div class="text-lg font-extrabold text-rose-200">A₅ (size 60)</div>
+            <p class="text-[11px] text-rose-300">Simple Group: Has NO normal subgroups!</p>
+          </div>
+          <div class="text-rose-400 font-bold text-xs">✕ Cannot reach {1} with abelian steps!</div>
+        `;
+        infoCard.innerHTML = `
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <h3 class="font-bold text-lg text-rose-400">S₅ Breakdown</h3>
+            <span class="px-3 py-1 rounded-full text-xs font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40">✕ NOT SOLVABLE</span>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            S₅ strips off ℤ₂ to get A₅. But A₅ (60 elements) is a <strong>SIMPLE NON-ABELIAN GROUP</strong>. It cannot be sliced any further! The factorization stops cold.
+          </p>
+        `;
+      }
+    }
+
+    // --- TAB 4: COMMUTATOR ELEVATOR ---
+    function runElevator(deg) {
+      const log = document.getElementById('elevator-log');
+      const shaft = document.getElementById('elevator-shaft');
+      const badge = document.getElementById('elev-status-badge');
+
+      if (deg === 4) {
+        badge.innerText = "Running S₄ (Solvable)";
+        badge.className = "text-emerald-400 font-mono font-bold";
+
+        log.innerHTML = `
+          <p class="text-sky-400 font-bold">⚡ Starting Derived Series Elevator for S₄ (size 24)...</p>
+          <p class="text-slate-300">• Floor 0: G = S₄ (24 elements)</p>
+          <p class="text-slate-300">• Floor 1: [S₄, S₄] = A₄ (12 elements). Filtered odd permutations.</p>
+          <p class="text-slate-300">• Floor 2: [A₄, A₄] = V₄ (4 elements, Klein 4-group).</p>
+          <p class="text-emerald-300 font-bold">• Ground Floor: [V₄, V₄] = {e} (1 element).</p>
+          <p class="text-emerald-400 font-extrabold pt-1">✅ ELEVATOR REACHED GROUND FLOOR {e}! S₄ IS SOLVABLE.</p>
+        `;
+
+        shaft.children[0].className = "p-3 bg-slate-800 border border-sky-500 text-sky-300 rounded-lg flex justify-between items-center";
+        shaft.children[1].className = "p-3 bg-slate-800 border border-indigo-500 text-indigo-300 rounded-lg flex justify-between items-center";
+        shaft.children[2].className = "p-3 bg-slate-800 border border-purple-500 text-purple-300 rounded-lg flex justify-between items-center";
+        shaft.children[3].className = "p-3 bg-emerald-950 border border-emerald-500 text-emerald-300 rounded-lg flex justify-between items-center glow-green";
+      } else {
+        badge.innerText = "Running S₅ (Unsolvable)";
+        badge.className = "text-rose-400 font-mono font-bold";
+
+        log.innerHTML = `
+          <p class="text-sky-400 font-bold">⚡ Starting Derived Series Elevator for S₅ (size 120)...</p>
+          <p class="text-slate-300">• Floor 0: G = S₅ (120 elements)</p>
+          <p class="text-slate-300">• Floor 1: [S₅, S₅] = A₅ (60 elements).</p>
+          <p class="text-rose-400 font-bold">• Floor 2: [A₅, A₅] = A₅ (STILL 60 elements!)</p>
+          <p class="text-rose-400 font-bold">• Floor 3: [[A₅, A₅], [A₅, A₅]] = A₅ ... INFINITE LOOP!</p>
+          <p class="text-rose-400 font-extrabold pt-1">🚨 ELEVATOR TRAPPED ON FLOOR A₅! NEVER REACHES {e}. S₅ IS NOT SOLVABLE.</p>
+        `;
+
+        shaft.children[0].className = "p-3 bg-slate-800 border border-sky-500 text-sky-300 rounded-lg flex justify-between items-center";
+        shaft.children[1].className = "p-3 bg-rose-950 border border-rose-500 text-rose-300 rounded-lg flex justify-between items-center glow-red animate-bounce";
+        shaft.children[2].className = "p-3 bg-rose-950 border border-rose-500 text-rose-300 rounded-lg flex justify-between items-center opacity-80";
+        shaft.children[3].className = "p-3 bg-slate-900 border border-slate-800 text-slate-600 rounded-lg flex justify-between items-center opacity-30";
+      }
+    }
+
+    // --- TAB 5: 3D ICOSAHEDRON RENDERER ---
+    let isoCanvas, isoCtx;
+    let isoAngleX = 0.5, isoAngleY = 0.5;
+    let autoRotate = true;
+
+    function initIcosahedron() {
+      isoCanvas = document.getElementById('icosahedron-canvas');
+      if (!isoCanvas) return;
+      isoCtx = isoCanvas.getContext('2d');
+
+      let isDragging = false;
+      let lastX, lastY;
+
+      isoCanvas.onmousedown = (e) => {
+        isDragging = true;
+        lastX = e.clientX;
+        lastY = e.clientY;
+      };
+      window.onmouseup = () => isDragging = false;
+      window.onmousemove = (e) => {
+        if (!isDragging) return;
+        const dx = e.clientX - lastX;
+        const dy = e.clientY - lastY;
+        isoAngleY += dx * 0.01;
+        isoAngleX += dy * 0.01;
+        lastX = e.clientX;
+        lastY = e.clientY;
+        renderIcosahedron();
+      };
+
+      renderIcosahedron();
+      requestAnimationFrame(animIcosahedron);
+    }
+
+    function animIcosahedron() {
+      if (autoRotate && isoCtx) {
+        isoAngleY += 0.008;
+        isoAngleX += 0.004;
+        renderIcosahedron();
+      }
+      requestAnimationFrame(animIcosahedron);
+    }
+
+    function toggleAutoRotate() {
+      autoRotate = !autoRotate;
+      document.getElementById('autorotate-btn').innerText = autoRotate ? 'Pause Auto-Rotate' : 'Resume Auto-Rotate';
+    }
+
+    function resetIcosahedron() {
+      isoAngleX = 0.5; isoAngleY = 0.5;
+      renderIcosahedron();
+    }
+
+    function renderIcosahedron() {
+      if (!isoCtx) return;
+      const w = isoCanvas.width;
+      const h = isoCanvas.height;
+      isoCtx.clearRect(0, 0, w, h);
+
+      const phi = (1 + Math.sqrt(5)) / 2;
+      const r = 90;
+
+      const rawVerts = [
+        [-1, phi, 0], [1, phi, 0], [-1, -phi, 0], [1, -phi, 0],
+        [0, -1, phi], [0, 1, phi], [0, -1, -phi], [0, 1, -phi],
+        [phi, 0, -1], [phi, 0, 1], [-phi, 0, -1], [-phi, 0, 1]
+      ];
+
+      const vertices = rawVerts.map(v => {
+        const len = Math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
+        return [(v[0]/len)*r, (v[1]/len)*r, (v[2]/len)*r];
+      });
+
+      const faces = [
+        [0, 11, 5], [0, 5, 1], [0, 1, 7], [0, 7, 10], [0, 10, 11],
+        [1, 5, 9], [5, 11, 4], [11, 10, 2], [10, 7, 6], [7, 1, 8],
+        [3, 9, 4], [3, 4, 2], [3, 2, 6], [3, 6, 8], [3, 8, 9],
+        [4, 9, 5], [2, 4, 11], [6, 2, 10], [8, 6, 7], [9, 8, 1]
+      ];
+
+      const cosX = Math.cos(isoAngleX), sinX = Math.sin(isoAngleX);
+      const cosY = Math.cos(isoAngleY), sinY = Math.sin(isoAngleY);
+
+      const transformed = vertices.map(v => {
+        let x1 = v[0] * cosY + v[2] * sinY;
+        let y1 = v[1];
+        let z1 = -v[0] * sinY + v[2] * cosY;
+
+        let x2 = x1;
+        let y2 = y1 * cosX - z1 * sinX;
+        let z2 = y1 * sinX + z1 * cosX;
+
+        return [x2 + w/2, y2 + h/2, z2];
+      });
+
+      const sortedFaces = faces.map(face => {
+        const zAvg = (transformed[face[0]][2] + transformed[face[1]][2] + transformed[face[2]][2]) / 3;
+        return { face, zAvg };
+      }).sort((a, b) => a.zAvg - b.zAvg);
+
+      sortedFaces.forEach(({ face }) => {
+        const p1 = transformed[face[0]];
+        const p2 = transformed[face[1]];
+        const p3 = transformed[face[2]];
+
+        isoCtx.beginPath();
+        isoCtx.moveTo(p1[0], p1[1]);
+        isoCtx.lineTo(p2[0], p2[1]);
+        isoCtx.lineTo(p3[0], p3[1]);
+        isoCtx.closePath();
+
+        const normZ = (p1[2] + p2[2] + p3[2]) / 3;
+        const alpha = Math.max(0.15, Math.min(0.75, (normZ + 100) / 200));
+
+        isoCtx.fillStyle = `rgba(244, 63, 94, ${alpha * 0.45})`;
+        isoCtx.fill();
+
+        isoCtx.strokeStyle = `rgba(253, 164, 175, ${alpha * 0.95})`;
+        isoCtx.lineWidth = 1.2;
+        isoCtx.stroke();
+      });
+
+      transformed.forEach(p => {
+        isoCtx.beginPath();
+        isoCtx.arc(p[0], p[1], 4, 0, Math.PI * 2);
+        isoCtx.fillStyle = '#38bdf8';
+        isoCtx.fill();
+      });
+    }
+
+    // --- TAB 6: GALOIS KEY LOCK SIMULATOR ---
+    function updateGaloisGate() {
+      const deg = document.getElementById('equation-select').value;
+      const diagram = document.getElementById('gate-diagram');
+
+      if (deg === '2') {
+        diagram.innerHTML = `
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-sky-400 font-bold">Degree 2 (Quadratic)</span>
+            <span class="text-emerald-400 font-mono font-bold">Galois Group: S₂</span>
+          </div>
+          <p class="text-xs text-slate-300">Requires 1 Radical Key: Square Root (√)</p>
+          <div class="w-full bg-slate-900 rounded-full h-2">
+            <div class="bg-emerald-400 h-2 rounded-full w-full"></div>
+          </div>
+        `;
+      } else if (deg === '3') {
+        diagram.innerHTML = `
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-purple-400 font-bold">Degree 3 (Cubic)</span>
+            <span class="text-emerald-400 font-mono font-bold">Galois Group: S₃</span>
+          </div>
+          <p class="text-xs text-slate-300">Requires 2 Radical Keys: Square Root (√) + Cube Root (∛)</p>
+          <div class="w-full bg-slate-900 rounded-full h-2">
+            <div class="bg-emerald-400 h-2 rounded-full w-full"></div>
+          </div>
+        `;
+      } else if (deg === '4') {
+        diagram.innerHTML = `
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-amber-400 font-bold">Degree 4 (Quartic)</span>
+            <span class="text-emerald-400 font-mono font-bold">Galois Group: S₄</span>
+          </div>
+          <p class="text-xs text-slate-300">Requires Nested Radical Keys: √, ∛, √</p>
+          <div class="w-full bg-slate-900 rounded-full h-2">
+            <div class="bg-emerald-400 h-2 rounded-full w-full"></div>
+          </div>
+        `;
+      } else {
+        diagram.innerHTML = `
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-rose-400 font-bold">Degree 5 (Quintic)</span>
+            <span class="text-rose-400 font-mono font-bold">Galois Group: S₅ → A₅</span>
+          </div>
+          <p class="text-xs text-rose-300">Radical Key Bounced! A₅ non-abelian simple group blocks the lock!</p>
+          <div class="w-full bg-slate-900 rounded-full h-2">
+            <div class="bg-rose-500 h-2 rounded-full w-1/3"></div>
+          </div>
+        `;
+      }
+    }
+
+    function runGateUnlockTest() {
+      const deg = document.getElementById('equation-select').value;
+      const diagram = document.getElementById('gate-diagram');
+
+      if (deg === '5') {
+        diagram.innerHTML = `
+          <div class="p-3.5 bg-rose-950/90 border border-rose-500 rounded-xl space-y-2 text-xs text-rose-200 glow-red animate-pulse-glow">
+            <div class="font-extrabold flex items-center gap-2 text-rose-400">
+              <span>🔒 UNLOCK FAILED!</span>
+            </div>
+            <p>
+              <strong>Reason:</strong> $A_5$ is a simple non-abelian group of size 60. Radical operations ($\sqrt[n]{\cdot}$) correspond strictly to <em>abelian field extensions</em> ($\mathbb{Z}_n$).
+            </p>
+            <p class="text-rose-300/90 italic">
+              Because $A_5$ has no non-trivial normal subgroups, radical keys bounce off $A_5$. No radical formula exists for general quintics!
+            </p>
+          </div>
+        `;
+      } else {
+        diagram.innerHTML = `
+          <div class="p-3.5 bg-emerald-950/90 border border-emerald-500 rounded-xl space-y-2 text-xs text-emerald-200 glow-green">
+            <div class="font-extrabold flex items-center gap-2 text-emerald-300">
+              <span>🔓 UNLOCK SUCCESSFUL!</span>
+            </div>
+            <p>
+              Degree ${deg} equations break down into abelian factors ($\mathbb{Z}_2, \mathbb{Z}_3$). The sequence of radical keys successfully unlocks all roots!
+            </p>
+          </div>
+        `;
+      }
+    }
+
+    // --- INITIALIZATION ---
+    window.onload = function() {
+      setDegree(3);
+      renderTower(3);
+      updateGaloisGate();
+    };
+  </script>
+</body>
+</html>
