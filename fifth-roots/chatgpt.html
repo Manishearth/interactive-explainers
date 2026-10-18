@@ -1,0 +1,1919 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The Quintic Wall — one-file interactive Galois theory guide</title>
+  <meta name="description" content="A self-contained interactive guide to the intuitive Galois-theory reason there is no general radicals formula for quintic equations." />
+  <style>
+    :root {
+      --bg0: #090c16;
+      --bg1: #11182b;
+      --bg2: #17213a;
+      --ink: #f7f2e8;
+      --muted: #c5bdae;
+      --dim: #958d83;
+      --line: rgba(255,255,255,0.14);
+      --soft: rgba(255,255,255,0.065);
+      --panel: rgba(255,255,255,0.085);
+      --panel-strong: rgba(255,255,255,0.125);
+      --gold: #ffc857;
+      --blue: #8bd5ff;
+      --green: #b6f09c;
+      --pink: #f9a8d4;
+      --red: #ff7d7d;
+      --violet: #c4b5fd;
+      --shadow: 0 24px 80px rgba(0,0,0,0.42);
+      --radius: 22px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: var(--sans);
+      background:
+        radial-gradient(circle at 18% 5%, rgba(139,213,255,0.23), transparent 34rem),
+        radial-gradient(circle at 84% 8%, rgba(249,168,212,0.18), transparent 32rem),
+        radial-gradient(circle at 70% 78%, rgba(255,200,87,0.10), transparent 44rem),
+        linear-gradient(180deg, var(--bg0), var(--bg1) 42%, #0b0f1c 100%);
+      min-height: 100vh;
+      line-height: 1.58;
+    }
+
+    a { color: inherit; }
+    code, .formula, .mono { font-family: var(--mono); }
+    code, .formula {
+      color: #ffe8a3;
+      background: rgba(0,0,0,0.28);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 0.5rem;
+      padding: 0.08rem 0.35rem;
+    }
+    strong { color: #fff8eb; }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(18px);
+      background: rgba(9,12,22,0.78);
+      border-bottom: 1px solid var(--line);
+    }
+    .wrap {
+      width: min(1120px, calc(100vw - 34px));
+      margin: 0 auto;
+    }
+    .nav-wrap {
+      min-height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-weight: 900;
+      text-decoration: none;
+      white-space: nowrap;
+      letter-spacing: -0.02em;
+    }
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      color: #10131f;
+      background: linear-gradient(135deg, var(--gold), var(--blue));
+      box-shadow: 0 10px 30px rgba(139,213,255,0.25);
+      font-size: 1.35rem;
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+    }
+    .nav-links a {
+      text-decoration: none;
+      color: var(--muted);
+      padding: 0.48rem 0.7rem;
+      border-radius: 999px;
+      font-size: 0.92rem;
+      border: 1px solid transparent;
+      transition: 160ms ease;
+    }
+    .nav-links a:hover,
+    .nav-links a.active {
+      color: var(--ink);
+      border-color: rgba(255,255,255,0.13);
+      background: rgba(255,255,255,0.08);
+    }
+    .menu-toggle { display: none; }
+
+    main { min-height: calc(100vh - 70px); }
+    .page { display: none; padding-bottom: 5rem; }
+    .page.active { display: block; }
+    .hero, .page-hero { padding: 5.2rem 0 3.2rem; }
+    .page-hero { padding-bottom: 2.2rem; }
+    .hero-grid, .grid-2, .grid-3, .grid-4 {
+      display: grid;
+      gap: 1.25rem;
+      align-items: start;
+    }
+    .hero-grid { grid-template-columns: 1.05fr 0.95fr; gap: 2rem; align-items: center; }
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    .kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      color: #10131f;
+      background: linear-gradient(135deg, var(--gold), #fff0b8);
+      border-radius: 999px;
+      padding: 0.35rem 0.72rem;
+      font-size: 0.82rem;
+      font-weight: 900;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+    h1, h2, h3 { margin: 0; line-height: 1.05; letter-spacing: -0.035em; }
+    h1 { font-size: clamp(2.55rem, 8vw, 6.15rem); max-width: 10.5ch; }
+    .page-hero h1 { max-width: 12.5ch; font-size: clamp(2.25rem, 5.8vw, 4.7rem); }
+    h2 { font-size: clamp(1.7rem, 3.6vw, 3rem); margin-bottom: 0.85rem; }
+    h3 { font-size: 1.15rem; margin-bottom: 0.55rem; letter-spacing: -0.02em; }
+    p { margin: 0.7rem 0 0; }
+    .lede {
+      font-size: clamp(1.12rem, 2.2vw, 1.36rem);
+      color: var(--muted);
+      max-width: 68ch;
+    }
+    .small { font-size: 0.92rem; color: var(--muted); }
+    .dim { color: var(--dim); }
+    .section { padding: 3.1rem 0; }
+    .section.tight { padding-top: 1rem; }
+    .section-head { margin-bottom: 1.15rem; }
+    .section-head p { max-width: 78ch; color: var(--muted); font-size: 1.03rem; }
+
+    .panel, .card, .callout, .diagram, .readout {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .panel { padding: 1.1rem; }
+    .card { padding: 1.25rem; }
+    .card p, .panel p, .callout p { color: var(--muted); }
+    .card.good { border-color: rgba(182,240,156,0.33); background: rgba(182,240,156,0.075); }
+    .card.warn { border-color: rgba(255,200,87,0.33); background: rgba(255,200,87,0.075); }
+    .card.bad { border-color: rgba(255,125,125,0.33); background: rgba(255,125,125,0.075); }
+    .card.emphasis { border-color: rgba(139,213,255,0.30); background: rgba(139,213,255,0.07); }
+    .callout {
+      padding: 1.15rem 1.25rem;
+      background: linear-gradient(135deg, rgba(255,200,87,0.14), rgba(139,213,255,0.10));
+      color: #fff5db;
+      margin: 1rem 0;
+    }
+
+    .cta-row, .button-row, .viz-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      margin-top: 1.25rem;
+      align-items: center;
+    }
+    .button, button {
+      font-family: inherit;
+      border: 1px solid rgba(255,255,255,0.16);
+      color: var(--ink);
+      background: rgba(255,255,255,0.09);
+      border-radius: 999px;
+      padding: 0.68rem 0.95rem;
+      cursor: pointer;
+      transition: 160ms ease;
+      font-weight: 800;
+    }
+    .button { text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
+    button:hover, .button:hover { transform: translateY(-1px); background: rgba(255,255,255,0.15); }
+    .button.primary, button.primary {
+      color: #10131f;
+      background: linear-gradient(135deg, var(--gold), var(--blue));
+      border-color: transparent;
+    }
+    button.small, .button.small { padding: 0.42rem 0.68rem; font-size: 0.86rem; }
+    button.ghost { background: transparent; }
+
+    .canvas-wrap {
+      position: relative;
+      min-height: 240px;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 18px;
+      background: rgba(4,7,14,0.45);
+      border: 1px solid rgba(255,255,255,0.10);
+    }
+    #clockCanvas, #seamCanvas, #coefCanvas {
+      touch-action: none;
+      cursor: grab;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    #clockCanvas.is-dragging, #seamCanvas.is-dragging, #coefCanvas.is-dragging { cursor: grabbing; }
+    .diagram-title {
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--gold);
+      font-weight: 900;
+      margin-bottom: 0.7rem;
+    }
+    .caption, .diagram-note {
+      color: var(--dim);
+      font-size: 0.92rem;
+      margin-top: 0.75rem;
+    }
+
+    .controls {
+      display: grid;
+      gap: 0.7rem;
+      margin-top: 0.85rem;
+    }
+    .control-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.75rem;
+    }
+    .control {
+      display: grid;
+      gap: 0.25rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    .control label { display: flex; justify-content: space-between; gap: 0.6rem; }
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--gold);
+    }
+    select {
+      color: var(--ink);
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 999px;
+      padding: 0.55rem 0.75rem;
+      font: inherit;
+    }
+    .readout {
+      padding: 0.9rem 1rem;
+      color: var(--muted);
+      background: rgba(0,0,0,0.24);
+      box-shadow: none;
+    }
+    .readout strong { color: var(--gold); }
+
+    .pill-row { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-top: 0.75rem; }
+    .pill {
+      border: 1px solid rgba(255,255,255,0.13);
+      background: rgba(255,255,255,0.07);
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 0.32rem 0.65rem;
+      font-size: 0.86rem;
+    }
+
+    .tour-list { display: grid; gap: 0.7rem; }
+    .tour-item {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 0.9rem;
+      text-decoration: none;
+      color: var(--ink);
+      padding: 1rem;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.13);
+      background: rgba(255,255,255,0.07);
+    }
+    .tour-item:hover { background: rgba(255,255,255,0.12); }
+    .tour-number {
+      width: 2.2rem;
+      height: 2.2rem;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: rgba(255,200,87,0.18);
+      color: var(--gold);
+      font-weight: 900;
+    }
+    .tour-title { font-weight: 900; }
+    .tour-copy { color: var(--muted); }
+
+    .formula-strip {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr auto 1fr;
+      gap: 0.8rem;
+      align-items: stretch;
+    }
+    .formula-box {
+      border: 1px solid rgba(255,255,255,0.13);
+      background: rgba(255,255,255,0.07);
+      border-radius: 18px;
+      padding: 1rem;
+    }
+    .formula-box code { display: inline-block; margin: 0.3rem 0; }
+    .arrow { align-self: center; color: var(--gold); font-size: 2rem; font-weight: 900; }
+
+    .proof-steps { display: grid; gap: 0.75rem; counter-reset: proof; }
+    .proof-step {
+      position: relative;
+      padding: 1rem 1rem 1rem 3.3rem;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.065);
+      border: 1px solid rgba(255,255,255,0.11);
+    }
+    .proof-step::before {
+      counter-increment: proof;
+      content: counter(proof);
+      position: absolute;
+      left: 1rem;
+      top: 1rem;
+      width: 1.55rem;
+      height: 1.55rem;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: #10131f;
+      background: var(--gold);
+      font-weight: 900;
+      font-size: 0.85rem;
+    }
+    .proof-step p { margin: 0; }
+
+    .cards-row { display: flex; flex-wrap: wrap; gap: 0.65rem; align-items: center; }
+    .root-card {
+      width: 52px;
+      height: 62px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      font-weight: 1000;
+      color: #10131f;
+      background: linear-gradient(135deg, #fff3b7, #8bd5ff);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.25);
+      transition: 220ms ease;
+    }
+    .root-card:nth-child(2) { background: linear-gradient(135deg, #b6f09c, #8bd5ff); }
+    .root-card:nth-child(3) { background: linear-gradient(135deg, #f9a8d4, #ffc857); }
+    .root-card:nth-child(4) { background: linear-gradient(135deg, #c4b5fd, #8bd5ff); }
+    .root-card:nth-child(5) { background: linear-gradient(135deg, #ffb3b3, #ffe6a7); }
+    .room-split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
+    .room {
+      border: 1px solid rgba(255,255,255,0.13);
+      background: rgba(255,255,255,0.06);
+      border-radius: 18px;
+      padding: 1rem;
+      min-height: 110px;
+    }
+    .room.active-even { border-color: rgba(182,240,156,0.7); box-shadow: inset 0 0 0 1px rgba(182,240,156,0.24), 0 12px 40px rgba(182,240,156,0.08); }
+    .room.active-odd { border-color: rgba(249,168,212,0.72); box-shadow: inset 0 0 0 1px rgba(249,168,212,0.24), 0 12px 40px rgba(249,168,212,0.08); }
+    .big-sign { font-size: 2.5rem; font-weight: 1000; line-height: 1; margin-top: 0.2rem; }
+
+    .degree-ladder {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.7rem;
+      margin-top: 0.9rem;
+    }
+    .ladder-step {
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.06);
+      border-radius: 18px;
+      padding: 1rem;
+    }
+    .ladder-step strong { display: block; margin-bottom: 0.35rem; }
+    .ladder-step.blocked { border-color: rgba(255,125,125,0.4); background: rgba(255,125,125,0.08); }
+    .ladder-step.ok { border-color: rgba(182,240,156,0.35); background: rgba(182,240,156,0.07); }
+
+    .accordion { display: grid; gap: 0.7rem; }
+    details {
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 18px;
+      background: rgba(255,255,255,0.065);
+      padding: 0.95rem 1rem;
+    }
+    summary { cursor: pointer; font-weight: 900; color: #fff8eb; }
+    details p { color: var(--muted); }
+
+    .footer { padding: 2rem 0 3rem; border-top: 1px solid var(--line); color: var(--dim); }
+    .footer-grid { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+
+    .mobile-note { display: none; }
+    @media (max-width: 900px) {
+      .nav-wrap { align-items: flex-start; flex-direction: column; padding: 0.8rem 0; }
+      .nav-links { justify-content: flex-start; }
+      .hero-grid, .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+      .formula-strip { grid-template-columns: 1fr; }
+      .arrow { display: none; }
+      .degree-ladder { grid-template-columns: 1fr; }
+      .control-grid { grid-template-columns: 1fr; }
+      h1 { max-width: 12ch; }
+    }
+    @media (max-width: 560px) {
+      .wrap { width: min(100vw - 22px, 1120px); }
+      .nav-links a { font-size: 0.82rem; padding: 0.4rem 0.52rem; }
+      .hero, .page-hero { padding-top: 3rem; }
+      .root-card { width: 44px; height: 54px; border-radius: 13px; }
+      .room-split { grid-template-columns: 1fr; }
+      .mobile-note { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap nav-wrap">
+      <a class="brand" href="#home" aria-label="Home"><span class="brand-mark">5</span><span>Quintic Wall</span></a>
+      <nav class="nav-links" aria-label="Main navigation">
+        <a href="index.html">All versions</a>
+        <a href="#home" data-route="home">Home</a>
+        <a href="#formulas" data-route="formulas">Formulas</a>
+        <a href="#clocks" data-route="clocks">Radical clocks</a>
+        <a href="#seams" data-route="seams">Seams</a>
+        <a href="#loops" data-route="loops">Coefficient loops</a>
+        <a href="#split" data-route="split">Yes/no split</a>
+        <a href="#wall" data-route="wall">The wall</a>
+        <a href="#exceptions" data-route="exceptions">Caveats</a>
+        <a href="#glossary" data-route="glossary">Glossary</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="page active" id="page-home" data-page="home">
+      <div class="hero">
+        <div class="wrap hero-grid">
+          <div>
+            <span class="kicker">One self-contained interactive file</span>
+            <h1>Why fifth-degree equations hit a wall.</h1>
+            <p class="lede">Quadratics, cubics, and quartics have formulas made from arithmetic and radicals. A general quintic does not. The Galois-theory reason is not “five is too big”; it is that five roots can secretly shuffle in a way radical formulas cannot organize.</p>
+            <div class="cta-row">
+              <a class="button primary" href="#loops">Try the coefficient loop</a>
+              <a class="button" href="#wall">Jump to the wall</a>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="diagram-title">The story in one moving picture</div>
+            <canvas id="heroCanvas" width="860" height="560" aria-label="Animated roots and coefficient loop"></canvas>
+            <p class="caption">A loop in coefficient-land can return to the same equation while the roots have traded labels. Radical formulas must be able to reproduce every such label trade.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="section tight">
+        <div class="wrap">
+          <div class="section-head">
+            <h2>The whole argument, minus the formal machinery</h2>
+            <p>This site uses three metaphors. They are not replacements for the proof, but they track the real proof closely.</p>
+          </div>
+          <div class="grid-3">
+            <div class="card emphasis">
+              <h3>1. Roots cast a shadow</h3>
+              <p>The coefficients are symmetric data. They see the set of roots, not the private name tag attached to each root.</p>
+            </div>
+            <div class="card warn">
+              <h3>2. Radicals are clocks</h3>
+              <p>Taking an nth root gives n related choices arranged around a circle. Nested radical formulas create nested clock choices.</p>
+            </div>
+            <div class="card bad">
+              <h3>3. Quintics have the wrong shuffle</h3>
+              <p>The generic five-root shuffle puzzle has a stubborn core that cannot be peeled into those nested clock choices.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="wrap grid-2">
+          <div>
+            <div class="section-head">
+              <h2>Choose a route</h2>
+              <p>The pages below are real pages inside this one HTML file. The address hash changes, but nothing external loads.</p>
+            </div>
+            <div class="tour-list">
+              <a class="tour-item" href="#formulas"><span class="tour-number">1</span><span><span class="tour-title">Why formulas worked before degree 5</span><br><span class="tour-copy">A radical formula is partly a calculation and partly a labeling machine.</span></span><span>→</span></a>
+              <a class="tour-item" href="#clocks"><span class="tour-number">2</span><span><span class="tour-title">Radical clocks</span><br><span class="tour-copy">Interact with square roots, cube roots, and nth-root branch choices.</span></span><span>→</span></a>
+              <a class="tour-item" href="#seams"><span class="tour-number">3</span><span><span class="tour-title">Seams</span><br><span class="tour-copy">See why loops around branch seams can swap root labels.</span></span><span>→</span></a>
+              <a class="tour-item" href="#loops"><span class="tour-number">4</span><span><span class="tour-title">Coefficient loops</span><br><span class="tour-copy">Animate a quintic while its roots move in the complex plane.</span></span><span>→</span></a>
+              <a class="tour-item" href="#split"><span class="tour-number">5</span><span><span class="tour-title">The yes/no split</span><br><span class="tour-copy">Understand the discriminant square root and the even/odd divide.</span></span><span>→</span></a>
+              <a class="tour-item" href="#wall"><span class="tour-number">6</span><span><span class="tour-title">Where the wall comes from</span><br><span class="tour-copy">The generic quintic has no next stable handle after the yes/no split.</span></span><span>→</span></a>
+            </div>
+          </div>
+          <div class="card">
+            <h2>The theorem in plain language</h2>
+            <p>There is no single formula that takes arbitrary fifth-degree coefficients and, using only arithmetic operations and radical signs, always outputs the five roots.</p>
+            <p>That does <strong>not</strong> mean quintic roots cannot be approximated, or that no individual quintic can be solved by radicals. It means the universal radical recipe fails for the generic case.</p>
+            <div class="callout"><strong>The mental model:</strong> coefficients hide labels; loops reveal possible hidden label shuffles; radicals can only handle shuffles that break into nested clock-like choices; the generic quintic’s shuffles do not.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="page-formulas" data-page="formulas">
+      <div class="page-hero">
+        <div class="wrap">
+          <span class="kicker">Page 1</span>
+          <h1>Before degree 5, formulas were label management.</h1>
+          <p class="lede">A formula does two jobs. First it computes numbers. Second, more subtly, it chooses among possible root names using only coefficient information.</p>
+        </div>
+      </div>
+      <div class="section tight">
+        <div class="wrap grid-2">
+          <div class="card emphasis">
+            <h2>The quadratic formula is the prototype</h2>
+            <p>For <span class="formula">ax² + bx + c = 0</span>, the formula</p>
+            <p class="formula" style="display:inline-block;font-size:1.05rem;margin-top:0.85rem;">x = (-b ± √(b² - 4ac)) / 2a</p>
+            <p>does not directly name one root. It finds a center, then opens a two-way door. One choice of the square root goes to one root; the other sign goes to the other root.</p>
+            <p>The symbol <span class="formula">±</span> is not decoration. It is the smallest possible example of a branch choice: a <strong>yes/no split</strong>.</p>
+          </div>
+          <div class="panel">
+            <div class="diagram-title">Two-way radical door</div>
+            <svg viewBox="0 0 720 430" role="img" aria-label="Quadratic roots as a two-way split" style="width:100%;height:auto;display:block;">
+              <defs>
+                <linearGradient id="doorGrad" x1="0" x2="1"><stop offset="0" stop-color="#ffc857"/><stop offset="1" stop-color="#8bd5ff"/></linearGradient>
+              </defs>
+              <line x1="95" y1="250" x2="625" y2="250" stroke="rgba(255,255,255,0.25)" stroke-width="5" stroke-linecap="round" />
+              <circle cx="360" cy="250" r="20" fill="#ffc857" />
+              <path d="M360 250 C310 175 220 160 145 210" fill="none" stroke="#8bd5ff" stroke-width="8" stroke-linecap="round" />
+              <path d="M360 250 C410 325 500 340 575 290" fill="none" stroke="#b6f09c" stroke-width="8" stroke-linecap="round" />
+              <circle cx="145" cy="210" r="30" fill="#8bd5ff" /><circle cx="575" cy="290" r="30" fill="#b6f09c" />
+              <text x="360" y="160" text-anchor="middle" fill="#fff4d7" font-weight="900" font-size="24">center: −b / 2a</text>
+              <text x="145" y="218" text-anchor="middle" fill="#10131f" font-weight="900" font-size="24">+</text>
+              <text x="575" y="298" text-anchor="middle" fill="#10131f" font-weight="900" font-size="24">−</text>
+              <text x="360" y="382" text-anchor="middle" fill="#c5bdae" font-size="22">√(b² − 4ac) chooses one of two opposite directions</text>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="wrap">
+          <div class="section-head">
+            <h2>The real problem: coefficients are label-blind</h2>
+            <p>Suppose the roots are <span class="formula">r₁, r₂, …, r₅</span>. The coefficients are made from symmetric combinations: the sum of all roots, the sum of all pairwise products, the total product, and so on. These combinations do not care which root you call “first.”</p>
+          </div>
+          <div class="formula-strip">
+            <div class="formula-box">
+              <h3>Visible input</h3>
+              <code>x⁵ + ax⁴ + bx³ + cx² + dx + e</code>
+              <p class="dim">Only symmetric coefficient data.</p>
+            </div>
+            <div class="arrow">→</div>
+            <div class="formula-box">
+              <h3>Allowed tools</h3>
+              <code>+, −, ×, ÷, √, ∛, ∜, …</code>
+              <p class="dim">A tower of arithmetic and branch choices.</p>
+            </div>
+            <div class="arrow">→</div>
+            <div class="formula-box">
+              <h3>Desired output</h3>
+              <code>r₁, r₂, r₃, r₄, r₅</code>
+              <p class="dim">Individual roots with consistent names.</p>
+            </div>
+          </div>
+          <div class="callout"><strong>Why degrees 3 and 4 survived:</strong> their label ambiguity can be reduced through useful intermediate patterns: pairings, triples, and smaller equations. The formulas are ugly because the bookkeeping is ugly, not because the guiding idea is absent.</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="wrap grid-2">
+          <div>
+            <h2>Degree-by-degree intuition</h2>
+            <div class="proof-steps">
+              <div class="proof-step"><p><strong>Degree 2:</strong> one square-root split is enough. There are two labels, and the discriminant tells you the two-way distance between them.</p></div>
+              <div class="proof-step"><p><strong>Degree 3:</strong> there are six possible labelings, but a clever auxiliary quantity turns the problem into a square-root split followed by a cube-root clock.</p></div>
+              <div class="proof-step"><p><strong>Degree 4:</strong> the roots can be paired in useful ways. Once the pairing is found, the remaining work breaks into quadratic-style choices.</p></div>
+              <div class="proof-step"><p><strong>Degree 5:</strong> the generic five-root cloud has no universally visible first pairing, tripling, or other stable handle after the broad discriminant split.</p></div>
+            </div>
+          </div>
+          <div class="card warn">
+            <h2>A warning about “intuitive”</h2>
+            <p>The final obstruction is exact, not merely a vibe. The official sentence is: the general quintic has a root-permutation structure called <span class="formula">S₅</span>, and radical formulas only work for structures that are “solvable.”</p>
+            <p>This site translates “solvable” into: <strong>can be peeled into nested clock choices</strong>. That is the bridge from the visual story to the theorem.</p>
+            <div class="button-row"><a class="button primary" href="#clocks">See radical clocks</a><a class="button" href="#wall">See the wall</a></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="page-clocks" data-page="clocks">
+      <div class="page-hero">
+        <div class="wrap">
+          <span class="kicker">Page 2</span>
+          <h1>Radicals are nested clocks.</h1>
+          <p class="lede">Taking an nth root in the complex plane is not one answer. It is n answers arranged around a regular clock face. A radical formula succeeds only when the root-label puzzle can be built from such clocks.</p>
+        </div>
+      </div>
+
+      <div class="section tight">
+        <div class="wrap grid-2">
+          <div class="panel">
+            <div class="diagram-title">Interactive nth-root clock</div>
+            <canvas id="clockCanvas" width="900" height="560" aria-label="Interactive radical clock"></canvas>
+            <p class="caption">Drag the gold input point around the left circle; on mobile it should follow your finger smoothly.</p>
+            <div class="controls">
+              <div class="control-grid">
+                <div class="control"><label>root degree <span id="clockNRead">2</span></label><input id="clockN" type="range" min="2" max="8" step="1" value="2"></div>
+                <div class="control"><label>input angle <span id="clockAngleRead">0°</span></label><input id="clockAngle" type="range" min="0" max="720" step="1" value="0"></div>
+              </div>
+              <div class="button-row"><button id="clockPlay" class="primary" type="button">Play loop</button><button id="clockReset" type="button">Reset</button></div>
+              <div class="readout" id="clockReadout"></div>
+            </div>
+          </div>
+          <div>
+            <h2>Why the clock metaphor is accurate</h2>
+            <p>The equation <span class="formula">wⁿ = z</span> has n solutions. If one solution is <span class="formula">w</span>, the others are obtained by multiplying by the n evenly spaced nth roots of 1.</p>
+            <p>So a radical does not create arbitrary chaos. It creates one organized circular ambiguity: turn by one notch, two notches, three notches, and so on.</p>
+            <p>Nested radicals stack these clocks. First choose a branch of one radical; inside that choice, choose a branch of the next; and so forth. That stack is powerful, but it has a very particular architecture.</p>
+            <div class="callout"><strong>Key point:</strong> a radical formula is a labeling machine whose branch choices are staged and clock-shaped. Galois theory asks whether the polynomial’s natural root-shuffles fit into such a staged clock machine.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="wrap grid-3">
+          <div class="card emphasis"><h3>Square root</h3><p>Two choices. A yes/no door. If the input goes once around zero, a followed square root lands on the opposite branch.</p></div>
+          <div class="card warn"><h3>Cube root</h3><p>Three choices. A three-position clock. One loop of the input advances the followed cube root by one third-turn.</p></div>
+          <div class="card good"><h3>nth root</h3><p>n choices. Still one clock. It is not a universal device for performing arbitrary shuffles among many roots.</p></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="wrap grid-2">
+          <div class="card">
+            <h2>Build a radical tower mentally</h2>
+            <p>Imagine a formula that uses a square root, then a cube root, then another square root. Its hidden branch choices look like this:</p>
+            <div class="degree-ladder">
+              <div class="ladder-step ok"><strong>√</strong><span class="dim">2 possible branches</span></div>
+              <div class="ladder-step ok"><strong>∛</strong><span class="dim">then 3 branches inside each</span></div>
+              <div class="ladder-step ok"><strong>√</strong><span class="dim">then 2 branches inside each</span></div>
+              <div class="ladder-step"><strong>total</strong><span class="dim">2 × 3 × 2 hidden choices</span></div>
+            </div>
+            <p>The total number is not the main issue. The main issue is the <strong>nested structure</strong>: first one split, then another split inside it, then another.</p>
+          </div>
+          <div class="card bad">
+            <h2>Why “just use a fifth root” is not enough</h2>
+            <p>A fifth root gives a five-position clock. That can solve equations like <span class="formula">x⁵ = a</span>, because that equation really is just a five-clock problem.</p>
+            <p>The general quintic is not a five-clock problem. Its five roots can braid and relabel in many interlocking ways. A single fifth-root clock, or even many nested clocks, must match the whole choreography. The generic quintic choreography has the wrong shape.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="page-seams" data-page="seams">
+      <div class="page-hero">
+        <div class="wrap">
+          <span class="kicker">Page 3</span>
+          <h1>Seams are where root sheets touch.</h1>
+          <p class="lede">A root is a multi-valued function of the coefficients. To follow one root continuously, you travel on a sheet. At special coefficient values, two sheets meet; loops around those places can move you to another sheet.</p>
+        </div>
+      </div>
+
+      <div class="section tight">
+        <div class="wrap grid-2">
+          <div class="panel">
+            <div class="diagram-title">Toy seam: wⁿ = z</div>
+            <canvas id="seamCanvas" width="900" height="560" aria-label="Interactive branch seam demonstration"></canvas>
+            <p class="caption">Drag the gold point around the seam to feel how a branch changes sheets.</p>
+            <div class="controls">
+              <div class="control-grid">
+                <div class="control"><label>radical degree <span id="seamNRead">2</span></label><input id="seamN" type="range" min="2" max="6" step="1" value="2"></div>
+                <div class="control"><label>loop angle <span id="seamAngleRead">0°</span></label><input id="seamAngle" type="range" min="0" max="1080" step="1" value="0"></div>
+              </div>
+              <div class="button-row"><button id="seamPlay" class="primary" type="button">Play around seam</button><button id="seamCut" type="button">Show branch cut</button><button id="seamReset" type="button">Reset</button></div>
+              <div class="readout" id="seamReadout"></div>
+            </div>
+          </div>
+          <div>
+            <h2>What is a seam, really?</h2>
+            <p>There are two related ideas that people often blur together:</p>
+            <div class="proof-steps">
+              <div class="proof-step"><p><strong>The natural seam:</strong> the coefficient values where two roots collide. For a polynomial, this is where the discriminant is zero. At such a point, the equation has a repeated root.</p></div>
+              <div class="proof-step"><p><strong>A drawn branch cut:</strong> an artificial line or surface we choose so that one branch of a multi-valued function can be treated as single-valued. The cut is bookkeeping; the collision locus is intrinsic.</p></div>
+            </div>
+            <p>For <span class="formula">w² = z</span>, the natural seam is <span class="formula">z = 0</span>. The square-root sheets meet there. To draw one square-root branch on ordinary paper, we usually add a branch cut, often the negative real axis. But moving the cut does not remove the underlying seam at zero.</p>
+            <div class="callout"><strong>Parking-garage picture:</strong> a loop around the central column can bring you to the next level. Locally everything felt continuous, but globally you changed sheets.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="wrap grid-2">
+          <div class="card emphasis">
+            <h2>Polynomial seams</h2>
+            <p>For a polynomial with roots <span class="formula">r₁, …, rₙ</span>, the discriminant is</p>
+            <p class="formula" style="display:inline-block;margin-top:0.8rem;">Δ = ∏ᵢ&lt;ⱼ (rᵢ − rⱼ)²</p>
+            <p>This becomes zero exactly when some pair <span class="formula">rᵢ = rⱼ</span>. That is the natural collision seam in coefficient-land.</p>
+            <p>Near a seam, two roots behave like a square root. Go around the seam once, and those two local branches often swap.</p>
+          </div>
+          <div class="card warn">
+            <h2>Why seams matter to formulas</h2>
+            <p>A formula that names roots has to decide how its branches change when you loop around these seams. If the actual roots swap but the formula’s radical branches cannot swap the same way, the formula cannot be globally correct.</p>
+            <p>This is the bridge from geometry to algebra: loops around seams test the hidden branch structure of any proposed radical formula.</p>
+            <div class="button-row"><a class="button primary" href="#loops">Try the quintic loop</a><a class="button" href="#split">Next: the yes/no split</a></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="wrap">
+          <div class="section-head">
+            <h2>Seams in more depth</h2>
+            <p>The seam is not a crack in the complex plane. It is a place where our attempt to label roots separately becomes singular.</p>
+          </div>
+          <div class="accordion">
+            <details open>
+              <summary>Why do labels become ambiguous at a repeated root?</summary>
+              <p>If two roots collide, there is no longer a meaningful local fact saying which one was “root A” and which was “root B.” When you move away from the collision point, the two separate again, but the two possible continuations are locally indistinguishable. This is exactly the square-root behavior.</p>
+            </details>
+            <details>
+              <summary>Why can a loop swap labels without crossing a seam?</summary>
+              <p>Because the seam can be surrounded. The path can stay in safe territory where all roots are distinct, yet still wind around the collision locus. Continuous tracking remembers the winding, and the final label may differ even though the final equation is the same.</p>
+            </details>
+            <details>
+              <summary>What does “coefficient-land” mean?</summary>
+              <p>For a degree-n polynomial, the coefficients are coordinates in a high-dimensional space. Each point is one equation. The discriminant-zero equations form a lower-dimensional “danger surface.” In a two-dimensional slice of that big space, the danger surface appears as points or curves.</p>
+            </details>
+            <details>
+              <summary>Are branch cuts real?</summary>
+              <p>They are real choices in a drawing or formula, not intrinsic walls in the math. The intrinsic object is the multi-sheeted surface and the collision seam. A branch cut is where we decide to stop and jump so a chosen sheet can be drawn as a single-valued function.</p>
+            </details>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="page-loops" data-page="loops">
+      <div class="page-hero">
+        <div class="wrap">
+          <span class="kicker">Page 4</span>
+          <h1>Loops in coefficient-land can braid roots.</h1>
+          <p class="lede">Here is the most interactive piece: a live root tracker for the quintic family <span class="formula">f_B(z)=z⁵ − z + B</span>. Move the constant term <span class="formula">B</span> around a loop and watch the five roots move.</p>
+        </div>
+      </div>
+
+      <div class="section tight">
+        <div class="wrap">
+          <div class="panel">
+            <div class="grid-2">
+              <div>
+                <div class="diagram-title">Coefficient-land: complex B-plane</div>
+                <canvas id="coefCanvas" width="900" height="680" aria-label="Coefficient plane with seam points and loop"></canvas>
+                <p class="caption">Drag the gold center or the moving gold B-dot. Tap empty space to move the loop center. The four glowing seam points are where <span class="formula">z⁵ − z + B</span> has a repeated root.</p>
+              </div>
+              <div>
+                <div class="diagram-title">Root-land: complex z-plane</div>
+                <canvas id="rootCanvas" width="900" height="680" aria-label="Root plane showing moving roots"></canvas>
+                <p class="caption">The colored labels stick to continuously followed roots. After one full coefficient loop, a label may land at another root’s starting position.</p>
+              </div>
+            </div>
+
+            <div class="controls">
+              <div class="control-grid">
+                <div class="control"><label>loop center Re(B) <span id="loopCxRead">0.54</span></label><input id="loopCx" type="range" min="-1.4" max="1.4" step="0.01" value="0.54"></div>
+                <div class="control"><label>loop center Im(B) <span id="loopCyRead">0.00</span></label><input id="loopCy" type="range" min="-1.4" max="1.4" step="0.01" value="0.00"></div>
+                <div class="control"><label>loop radius <span id="loopRRead">0.18</span></label><input id="loopR" type="range" min="0.02" max="1.2" step="0.01" value="0.18"></div>
+                <div class="control"><label>speed <span id="loopSpeedRead">0.65×</span></label><input id="loopSpeed" type="range" min="0.05" max="2.00" step="0.05" value="0.65"></div>
+              </div>
+              <div class="button-row">
+                <button id="loopPlay" class="primary" type="button">Pause</button>
+                <button id="loopStep" type="button">Step</button>
+                <button id="loopReset" type="button">Reset tracking</button>
+                <button id="loopTrails" type="button">Clear trails</button>
+                <select id="loopPreset" aria-label="Loop preset">
+                  <option value="one">Preset: around one seam</option>
+                  <option value="miss">Preset: miss the seams</option>
+                  <option value="two">Preset: around two seams</option>
+                  <option value="all">Preset: around all four seams</option>
+                  <option value="near">Preset: near miss</option>
+                  <option value="danger">Preset: graze a seam</option>
+                </select>
+              </div>
+              <div class="readout" id="loopReadout"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="wrap grid-2">
+          <div>
+            <h2>What the loop is testing</h2>
+            <p>Each point in the left canvas is one equation. The moving dot traces a closed path of equations. The roots on the right move continuously as the equation changes.</p>
+            <p>When the dot returns to the start, the coefficients are exactly back where they began. So the unordered set of five root values is back too. But the root you followed as <span class="formula">R1</span> may now sit where <span class="formula">R3</span> started. That is a hidden root shuffle.</p>
+            <p>These shuffles are not bugs in the visualization. They are the geometric fingerprints that Galois theory studies.</p>
+          </div>
+          <div class="card warn">
+            <h2>Why just this family is useful</h2>
+            <p>The full space of quintic coefficients is bigger. Fixing all coefficients except <span class="formula">B</span> gives a two-real-dimensional slice, so we can draw it.</p>
+            <p>In this slice, the discriminant seam becomes four points. Loops around those points show the local mechanism: roots can trade places when coefficients travel around collision places.</p>
+            <p>The general quintic has enough such seam-loops to generate the whole five-root shuffle puzzle.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="wrap grid-3">
+          <div class="card emphasis"><h3>Miss the seams</h3><p>A loop that does not wind around any seam usually brings every followed root back to its original slot.</p></div>
+          <div class="card good"><h3>Circle one seam</h3><p>Near a simple collision, two sheets meet. A loop around that seam typically swaps those two branches.</p></div>
+          <div class="card bad"><h3>Mix loops</h3><p>Different seam loops swap different pairs. Combined, they can generate far richer root shuffles.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="page-split" data-page="split">
+      <div class="page-hero">
+        <div class="wrap">
+          <span class="kicker">Page 5</span>
+          <h1>The yes/no split is the discriminant’s square root.</h1>
+          <p class="lede">The first useful radical split asks: has the hidden relabeling used an even or odd number of swaps? The discriminant knows this through a square root.</p>
+        </div>
+      </div>
+
+      <div class="section tight">
+        <div class="wrap grid-2">
+          <div class="panel">
+            <div class="diagram-title">Parity detector</div>
+            <div class="cards-row" id="parityCards" aria-label="Five root-label cards"></div>
+            <div class="button-row">
+              <button id="paritySwap12" class="primary" type="button">Swap slots 1 and 2</button>
+              <button id="paritySwap23" type="button">Swap slots 2 and 3</button>
+              <button id="parityCycle3" type="button">Cycle 1→2→3</button>
+              <button id="parityCycle5" type="button">Cycle all 5</button>
+              <button id="parityReset" type="button">Reset</button>
+            </div>
+            <div class="room-split">
+              <div class="room" id="evenRoom"><h3>YES room: even shuffle</h3><p>√Δ keeps its sign.</p><div class="big-sign">+</div></div>
+              <div class="room" id="oddRoom"><h3>NO room: odd shuffle</h3><p>√Δ flips sign.</p><div class="big-sign">−</div></div>
+            </div>
+            <div class="readout" id="parityReadout" style="margin-top:0.85rem;"></div>
+          </div>
+          <div>
+            <h2>Why the discriminant creates a yes/no door</h2>
+            <p>Write the roots as <span class="formula">r₁, …, r₅</span>. The discriminant is</p>
+            <p class="formula" style="display:inline-block;margin-top:0.8rem;">Δ = ∏ᵢ&lt;ⱼ (rᵢ − rⱼ)²</p>
+            <p>Because every factor is squared, <span class="formula">Δ</span> is label-blind. It can be written using only the coefficients.</p>
+            <p>But its square root can be written as</p>
+            <p class="formula" style="display:inline-block;margin-top:0.8rem;">V = ∏ᵢ&lt;ⱼ (rᵢ − rⱼ)</p>
+            <p>This unsquared product <span class="formula">V</span> changes sign whenever two root labels are swapped. So adjoining <span class="formula">√Δ</span> to the coefficient information is like installing a parity detector: it tells you whether you are in the “even shuffle” world or the “odd shuffle” world.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="wrap grid-2">
+          <div class="card emphasis">
+            <h2>Why this is called “yes/no”</h2>
+            <p>A square root always has two branches. Here the two branches are <span class="formula">+V</span> and <span class="formula">−V</span>. The formula can ask a binary question:</p>
+            <p><strong>Are we on the same orientation of the roots, or the flipped one?</strong></p>
+            <p>That is the yes/no split: same orientation versus opposite orientation, even versus odd.</p>
+          </div>
+          <div class="card bad">
+            <h2>Why the yes/no split is not enough</h2>
+            <p>For five roots there are <span class="formula">5! = 120</span> labelings. The discriminant square root splits them into two equal piles of 60.</p>
+            <p>That is progress, but the remaining 60 even shuffles are still deeply interlocked. The generic quintic’s obstruction lives inside that 60-piece “even” core.</p>
+            <p>So the first radical door opens. The problem is that after walking through it, there is no next universal radical door.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="wrap">
+          <div class="callout"><strong>Translation:</strong> the yes/no split corresponds to passing from all permutations of five roots to the even permutations. Officially, it is the move from <span class="formula">S₅</span> to <span class="formula">A₅</span>. The wall is that <span class="formula">A₅</span> has no compatible smaller normal seam to peel by radicals.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="page-wall" data-page="wall">
+      <div class="page-hero">
+        <div class="wrap">
+          <span class="kicker">Page 6</span>
+          <h1>Where the wall comes from.</h1>
+          <p class="lede">The wall is a mismatch between two shapes: radical formulas have a layered clock architecture, while the generic quintic’s root shuffles contain a tightly interlocked five-root core.</p>
+        </div>
+      </div>
+
+      <div class="section tight">
+        <div class="wrap grid-2">
+          <div class="panel">
+            <div class="diagram-title">Shuffle lab</div>
+            <div class="cards-row" id="wallCards" aria-label="Current five-root shuffle"></div>
+            <div class="button-row">
+              <button id="wallSwap" class="primary" type="button">Loop A: swap 1 and 2</button>
+              <button id="wallCycle" type="button">Loop B: rotate all 5</button>
+              <button id="wallRandom" type="button">Mix loops</button>
+              <button id="wallReset" type="button">Reset</button>
+            </div>
+            <div class="readout" id="wallReadout" style="margin-top:0.85rem;"></div>
+            <p class="caption">A transposition and a five-cycle are enough to reach all 120 possible labelings. This is a toy control panel for the generic quintic’s “all shuffles are possible” behavior.</p>
+          </div>
+          <div>
+            <h2>The obstruction in four sentences</h2>
+            <div class="proof-steps">
+              <div class="proof-step"><p><strong>Coefficients hide labels.</strong> They remember symmetric facts about the roots but not which root is named first, second, third, and so on.</p></div>
+              <div class="proof-step"><p><strong>Loops reveal the hidden ambiguity.</strong> Move coefficients around seams and back; the equation returns, but followed root labels may be permuted.</p></div>
+              <div class="proof-step"><p><strong>Radicals can only add nested clock choices.</strong> Each radical gives a cyclic branch choice; a radical formula needs a sequence of stable splits.</p></div>
+              <div class="proof-step"><p><strong>The generic quintic has no stable next split after parity.</strong> Its 60 even shuffles form a core with no smaller universal handle. That is the wall.</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="wrap grid-2">
+          <div class="card emphasis">
+            <h2>A radical formula needs a “first handle”</h2>
+            <p>Before a radical tower can do anything, it must find some coefficient-built quantity whose branches split the hidden root labelings in a stable way. The discriminant square root provides one handle: even versus odd.</p>
+            <p>For quadratics, that handle essentially solves the problem. For cubics and quartics, further handles exist. They can be ugly, but they are there.</p>
+          </div>
+          <div class="card bad">
+            <h2>The quintic core has no such handle</h2>
+            <p>After the discriminant split, the generic quintic still has 60 even labelings. Those 60 do not break into a smaller coefficient-respected clock split. Any attempted simple partition gets scrambled by some allowed loop.</p>
+            <p>That is the intuitive version of the famous fact that <span class="formula">A₅</span> is simple and non-abelian: it has no nontrivial normal layer that a radical could peel away.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="wrap">
+          <div class="section-head">
+            <h2>Degree ladder: why 2, 3, 4 pass and 5 fails</h2>
+            <p>Use the slider to see the size of the label puzzle and the first useful radical structure.</p>
+          </div>
+          <div class="panel">
+            <div class="control"><label>degree <span id="degreeRead">5</span></label><input id="degreeSlider" type="range" min="2" max="5" step="1" value="5"></div>
+            <div id="degreeExplanation" class="readout" style="margin-top:0.9rem;"></div>
+            <div class="degree-ladder" id="degreeLadder"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="wrap grid-2">
+          <div>
+            <h2>What “no formula” actually means</h2>
+            <p>It means no universal recipe using only <span class="formula">+, −, ×, ÷</span> and radical signs can solve every quintic from its coefficients.</p>
+            <p>It does not mean the roots do not exist. It does not mean you cannot approximate them. It does not mean every individual quintic is unsolvable by radicals. It means the generic five-root shuffle pattern is incompatible with radical towers.</p>
+          </div>
+          <div class="card warn">
+            <h2>The wall is topological and algebraic</h2>
+            <p>Topologically, loops around seams braid root sheets. Algebraically, those braids become permutations of root labels. Radical expressions have their own branch-change patterns. The theorem says the generic quintic’s branch-change pattern cannot be matched by any radical expression.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="page-exceptions" data-page="exceptions">
+      <div class="page-hero">
+        <div class="wrap">
+          <span class="kicker">Page 7</span>
+          <h1>Caveats: the theorem is precise, not pessimistic.</h1>
+          <p class="lede">“No general quintic formula by radicals” is often misheard. The actual statement leaves many useful things untouched.</p>
+        </div>
+      </div>
+
+      <div class="section tight">
+        <div class="wrap grid-3">
+          <div class="card good"><h3>Some quintics are solvable</h3><p><span class="formula">x⁵ - a = 0</span> is solved by fifth roots. Many special quintics have extra structure that shrinks the shuffle puzzle.</p></div>
+          <div class="card emphasis"><h3>Factored quintics are easier</h3><p>If a quintic factors into a quadratic and a cubic, you solve the smaller pieces with known radical formulas.</p></div>
+          <div class="card warn"><h3>Numerical solving is fine</h3><p>Galois theory blocks a type of exact symbolic recipe, not numerical approximation.</p></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="wrap grid-2">
+          <div>
+            <h2>Three common misunderstandings</h2>
+            <div class="accordion">
+              <details open><summary>“No formula” means no roots?</summary><p>No. Every complex polynomial of degree five has five complex roots counting multiplicity. The issue is whether those roots can always be expressed from the coefficients using radicals.</p></details>
+              <details><summary>“No formula” means computers cannot solve quintics?</summary><p>No. Computers can approximate quintic roots extremely well using numerical methods. The Abel–Ruffini theorem is about exact radical expressions.</p></details>
+              <details><summary>“No general formula” means no individual quintic can be solved?</summary><p>No. Special quintics can have smaller, peelable root-shuffle structures. Galois theory can diagnose when a particular polynomial is solvable by radicals.</p></details>
+            </div>
+          </div>
+          <div class="card bad">
+            <h2>The generic case is the target</h2>
+            <p>The theorem concerns the most general fifth-degree equation with independent symbolic coefficients. In that case, no accidental pattern, factorization, or special symmetry is available.</p>
+            <p>That generic equation has the full five-root shuffle behavior. Once that behavior appears, radicals cannot universally name the roots.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="wrap">
+          <div class="callout"><strong>Final intuition:</strong> radicals solve puzzles made from nested circular choices. Special quintics may be that kind of puzzle. The generic quintic is not.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="page-glossary" data-page="glossary">
+      <div class="page-hero">
+        <div class="wrap">
+          <span class="kicker">Page 8</span>
+          <h1>Glossary: the official names behind the metaphors.</h1>
+          <p class="lede">Here is the translation from the intuitive tour into standard Galois-theory language.</p>
+        </div>
+      </div>
+
+      <div class="section tight">
+        <div class="wrap grid-2">
+          <div class="card"><h3>Root shadows</h3><p><strong>Official:</strong> symmetric polynomials in the roots. The coefficients are elementary symmetric functions of the roots.</p></div>
+          <div class="card"><h3>Hidden shuffles</h3><p><strong>Official:</strong> permutations of roots preserving all algebraic relations visible over the base field.</p></div>
+          <div class="card"><h3>Galois group</h3><p>The collection of all root permutations that are invisible from the coefficient field. For the generic quintic this is <span class="formula">S₅</span>, with 120 elements.</p></div>
+          <div class="card"><h3>Radical clock</h3><p><strong>Official:</strong> adjoining an nth root creates a cyclic type of extension after accounting for roots of unity.</p></div>
+          <div class="card"><h3>Peelable structure</h3><p><strong>Official:</strong> a solvable group, meaning it has a chain of normal subgroups whose successive quotients are abelian.</p></div>
+          <div class="card"><h3>60-part heart</h3><p><strong>Official:</strong> the alternating group <span class="formula">A₅</span>. It is simple and non-abelian, which is the exact obstruction inside <span class="formula">S₅</span>.</p></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="wrap grid-2">
+          <div>
+            <h2>The formal proof skeleton</h2>
+            <div class="proof-steps">
+              <div class="proof-step"><p>The generic quintic over the rational function field in its coefficients has Galois group <span class="formula">S₅</span>.</p></div>
+              <div class="proof-step"><p>If a polynomial is solvable by radicals, its Galois group must be solvable.</p></div>
+              <div class="proof-step"><p><span class="formula">S₅</span> is not solvable because it contains the non-abelian simple group <span class="formula">A₅</span> as the stubborn core.</p></div>
+              <div class="proof-step"><p>Therefore the generic quintic is not solvable by radicals, so no universal radical formula exists for fifth-degree equations.</p></div>
+            </div>
+          </div>
+          <div class="card emphasis">
+            <h2>The visual proof skeleton</h2>
+            <p>Coefficients hide root labels. Loops around discriminant seams reveal how labels can shuffle. Radical formulas have branch choices organized as nested clocks. The generic quintic’s loop-shuffles do not fit any nested clock architecture.</p>
+            <div class="button-row"><a class="button primary" href="#home">Back to start</a><a class="button" href="#loops">Replay the loop</a></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footer-grid">
+      <span>Self-contained single-file interactive guide.</span>
+      <span><a href="#glossary">Official vocabulary</a> · <a href="#loops">Coefficient loop</a></span>
+    </div>
+  </footer>
+
+  <script>
+    (() => {
+      const rootSymbols = ['R1', 'R2', 'R3', 'R4', 'R5'];
+      const rootColors = ['#8bd5ff', '#b6f09c', '#ffc857', '#f9a8d4', '#c4b5fd'];
+      const TAU = Math.PI * 2;
+
+      const $ = (sel, root = document) => root.querySelector(sel);
+      const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+      const fmt = (x, n = 2) => Number.isFinite(x) ? x.toFixed(n) : '—';
+      const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
+      const pageActive = (name) => { const p = document.querySelector(`#page-${name}`); return p && p.classList.contains('active'); };
+
+      function setupRouter() {
+        const pages = $$('.page');
+        const navLinks = $$('[data-route]');
+        function route() {
+          const name = (location.hash || '#home').slice(1) || 'home';
+          const target = pages.find(p => p.dataset.page === name) || $('#page-home');
+          pages.forEach(p => p.classList.toggle('active', p === target));
+          navLinks.forEach(a => a.classList.toggle('active', a.dataset.route === target.dataset.page));
+          window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
+        }
+        window.addEventListener('hashchange', route);
+        route();
+      }
+
+      function c(re, im = 0) { return { re, im }; }
+      function cadd(a, b) { return c(a.re + b.re, a.im + b.im); }
+      function csub(a, b) { return c(a.re - b.re, a.im - b.im); }
+      function cmul(a, b) { return c(a.re*b.re - a.im*b.im, a.re*b.im + a.im*b.re); }
+      function cscale(a, s) { return c(a.re*s, a.im*s); }
+      function cdiv(a, b) {
+        const d = b.re*b.re + b.im*b.im || 1e-30;
+        return c((a.re*b.re + a.im*b.im)/d, (a.im*b.re - a.re*b.im)/d);
+      }
+      function cabs2(a) { return a.re*a.re + a.im*a.im; }
+      function cabs(a) { return Math.hypot(a.re, a.im); }
+      function cpowInt(z, n) {
+        let out = c(1,0);
+        for (let i = 0; i < n; i++) out = cmul(out, z);
+        return out;
+      }
+      function poly5(z, A, B) {
+        return cadd(cadd(cpowInt(z, 5), cscale(z, A)), B);
+      }
+      function cloneRoots(arr) { return arr.map(z => c(z.re, z.im)); }
+
+      function durandKernerQuintic(A, B) {
+        const scale = Math.max(1.15, Math.pow(Math.abs(A) + cabs(B) + 1, 0.25));
+        let roots = [];
+        for (let i = 0; i < 5; i++) {
+          const ang = 0.37 + TAU * i / 5;
+          roots.push(c(scale * Math.cos(ang), scale * Math.sin(ang)));
+        }
+        for (let iter = 0; iter < 90; iter++) {
+          let maxStep = 0;
+          for (let i = 0; i < 5; i++) {
+            let denom = c(1,0);
+            for (let j = 0; j < 5; j++) if (j !== i) denom = cmul(denom, csub(roots[i], roots[j]));
+            const step = cdiv(poly5(roots[i], A, B), denom);
+            roots[i] = csub(roots[i], step);
+            maxStep = Math.max(maxStep, cabs(step));
+          }
+          if (maxStep < 1e-12) break;
+        }
+        return roots;
+      }
+
+      function genPerms(n) {
+        const out = [];
+        const used = Array(n).fill(false);
+        const cur = [];
+        function rec() {
+          if (cur.length === n) { out.push(cur.slice()); return; }
+          for (let i = 0; i < n; i++) if (!used[i]) { used[i] = true; cur.push(i); rec(); cur.pop(); used[i] = false; }
+        }
+        rec();
+        return out;
+      }
+      const perms5 = genPerms(5);
+
+      function bestPermIndices(prev, next) {
+        let best = perms5[0], bestScore = Infinity;
+        for (const p of perms5) {
+          let s = 0;
+          for (let i = 0; i < 5; i++) s += cabs2(csub(prev[i], next[p[i]]));
+          if (s < bestScore) { bestScore = s; best = p; }
+        }
+        return best;
+      }
+      function matchByNearest(prev, next) {
+        const p = bestPermIndices(prev, next);
+        return p.map(i => next[i]);
+      }
+      function sortRootsForStart(roots) {
+        return roots.slice().sort((a,b) => Math.atan2(a.im, a.re) - Math.atan2(b.im, b.re));
+      }
+
+      function drawGrid(ctx, w, h, opts = {}) {
+        const step = opts.step || 56;
+        ctx.save();
+        ctx.strokeStyle = 'rgba(255,255,255,0.055)';
+        ctx.lineWidth = 1;
+        for (let x = w/2 % step; x < w; x += step) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke(); }
+        for (let y = h/2 % step; y < h; y += step) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); }
+        ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+        ctx.lineWidth = 1.4;
+        ctx.beginPath(); ctx.moveTo(0,h/2); ctx.lineTo(w,h/2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(w/2,0); ctx.lineTo(w/2,h); ctx.stroke();
+        ctx.restore();
+      }
+      function drawText(ctx, text, x, y, size = 15, color = '#f7f2e8', align = 'left', weight = '700') {
+        ctx.save();
+        ctx.font = `${weight} ${size}px ${getComputedStyle(document.body).fontFamily}`;
+        ctx.fillStyle = color;
+        ctx.textAlign = align;
+        ctx.textBaseline = 'middle';
+        ctx.fillText(text, x, y);
+        ctx.restore();
+      }
+      function clearCanvas(ctx, canvas) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const g = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+        g.addColorStop(0, 'rgba(255,255,255,0.045)');
+        g.addColorStop(1, 'rgba(255,255,255,0.015)');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+
+      function canvasPoint(canvas, ev) {
+        const rect = canvas.getBoundingClientRect();
+        return {
+          x: (ev.clientX - rect.left) * (canvas.width / rect.width),
+          y: (ev.clientY - rect.top) * (canvas.height / rect.height)
+        };
+      }
+      function pxDist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
+      function wrapAngle(theta) {
+        theta %= TAU;
+        return theta < 0 ? theta + TAU : theta;
+      }
+      function signedAngleDelta(from, to) {
+        let d = to - from;
+        while (d > Math.PI) d -= TAU;
+        while (d < -Math.PI) d += TAU;
+        return d;
+      }
+      function setRangeValue(input, value, digits = 2) {
+        const lo = Number(input.min), hi = Number(input.max);
+        const v = clamp(value, lo, hi);
+        input.value = Number.isInteger(v) ? String(v) : String(Number(v.toFixed(digits)));
+        return Number(input.value);
+      }
+      function bindCircularAngleDrag(canvas, centerForPointer, input, drawFn, options = {}) {
+        if (!canvas || !input) return;
+        let drag = null;
+        const max = Number(input.max), min = Number(input.min);
+        function rawAngle(ev) {
+          const pt = canvasPoint(canvas, ev);
+          const center = centerForPointer();
+          return Math.atan2(pt.y - center.y, pt.x - center.x);
+        }
+        function setFromEvent(ev) {
+          const next = rawAngle(ev);
+          const delta = signedAngleDelta(drag.lastRaw, next);
+          drag.total += delta * 180 / Math.PI;
+          drag.total = clamp(drag.total, min, max);
+          drag.lastRaw = next;
+          input.value = String(Math.round(drag.total));
+          drawFn();
+        }
+        canvas.addEventListener('pointerdown', ev => {
+          if (ev.button !== undefined && ev.button !== 0) return;
+          ev.preventDefault();
+          if (options.onStart) options.onStart(ev);
+          canvas.classList.add('is-dragging');
+          drag = { id: ev.pointerId, lastRaw: rawAngle(ev), total: Number(input.value) };
+          try { canvas.setPointerCapture(ev.pointerId); } catch(e) {}
+          setFromEvent(ev);
+        }, { passive: false });
+        canvas.addEventListener('pointermove', ev => {
+          if (!drag || ev.pointerId !== drag.id) return;
+          ev.preventDefault();
+          setFromEvent(ev);
+        }, { passive: false });
+        function end(ev) {
+          if (!drag || ev.pointerId !== drag.id) return;
+          ev.preventDefault();
+          try { canvas.releasePointerCapture(ev.pointerId); } catch(e) {}
+          canvas.classList.remove('is-dragging');
+          if (options.onEnd) options.onEnd(ev);
+          drag = null;
+        }
+        canvas.addEventListener('pointerup', end, { passive: false });
+        canvas.addEventListener('pointercancel', end, { passive: false });
+        canvas.addEventListener('lostpointercapture', () => { canvas.classList.remove('is-dragging'); drag = null; });
+      }
+
+      function initHeroCanvas() {
+        const canvas = $('#heroCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        let t = 0;
+        function draw() {
+          if (!pageActive('home')) { requestAnimationFrame(draw); return; }
+          const w = canvas.width, h = canvas.height;
+          clearCanvas(ctx, canvas);
+          drawGrid(ctx, w, h, { step: 60 });
+          drawText(ctx, 'coefficient-land', 170, 58, 20, '#ffc857', 'center', '900');
+          drawText(ctx, 'root-land', 640, 58, 20, '#8bd5ff', 'center', '900');
+
+          ctx.save();
+          ctx.translate(170, 275);
+          ctx.strokeStyle = 'rgba(255,200,87,0.38)';
+          ctx.lineWidth = 5;
+          ctx.beginPath(); ctx.ellipse(0,0,96,66,0.2,0,TAU); ctx.stroke();
+          for (let i=0;i<4;i++) {
+            const a = i*TAU/4 + 0.2;
+            ctx.fillStyle = '#ff7d7d';
+            ctx.beginPath(); ctx.arc(72*Math.cos(a), 72*Math.sin(a), 8,0,TAU); ctx.fill();
+          }
+          const p = c(96*Math.cos(t)*Math.cos(0.2)-66*Math.sin(t)*Math.sin(0.2), 96*Math.cos(t)*Math.sin(0.2)+66*Math.sin(t)*Math.cos(0.2));
+          ctx.fillStyle = '#ffc857'; ctx.beginPath(); ctx.arc(p.re,p.im,12,0,TAU); ctx.fill();
+          drawText(ctx, 'loop around seams', 0, 112, 16, '#c5bdae', 'center', '700');
+          ctx.restore();
+
+          ctx.save();
+          ctx.translate(640, 275);
+          for (let i=0;i<5;i++) {
+            const base = -Math.PI/2 + i*TAU/5;
+            const wobble = 0.6*Math.sin(t + i*1.4);
+            const r = 92 + 20*Math.sin(t*0.7 + i);
+            const x = r*Math.cos(base + wobble*0.18);
+            const y = r*Math.sin(base + wobble*0.18);
+            ctx.strokeStyle = rootColors[i]; ctx.lineWidth = 2.4; ctx.globalAlpha = 0.38;
+            ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(x,y); ctx.stroke(); ctx.globalAlpha = 1;
+            ctx.fillStyle = rootColors[i]; ctx.beginPath(); ctx.arc(x,y,17,0,TAU); ctx.fill();
+            drawText(ctx, rootSymbols[i], x, y, 14, '#10131f', 'center', '1000');
+          }
+          drawText(ctx, 'followed labels may trade places', 0, 130, 16, '#c5bdae', 'center', '700');
+          ctx.restore();
+
+          ctx.strokeStyle = 'rgba(255,255,255,0.20)'; ctx.lineWidth = 4;
+          ctx.beginPath(); ctx.moveTo(315,275); ctx.bezierCurveTo(405,205, 470,345, 535,275); ctx.stroke();
+          drawText(ctx, 'roots respond', 425, 205, 16, '#f7f2e8', 'center', '900');
+          t += 0.012;
+          requestAnimationFrame(draw);
+        }
+        draw();
+      }
+
+      function initClockCanvas() {
+        const canvas = $('#clockCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const nInput = $('#clockN'), aInput = $('#clockAngle'), playBtn = $('#clockPlay'), resetBtn = $('#clockReset');
+        const nRead = $('#clockNRead'), aRead = $('#clockAngleRead'), readout = $('#clockReadout');
+        let playing = false;
+        function state() { return { n: Number(nInput.value), deg: Number(aInput.value) }; }
+        function draw() {
+          const { n, deg } = state();
+          nRead.textContent = n;
+          aRead.textContent = `${deg}°`;
+          const theta = deg * Math.PI / 180;
+          const w = canvas.width, h = canvas.height;
+          clearCanvas(ctx, canvas);
+          drawGrid(ctx, w, h, { step: 64 });
+          const left = { x: 230, y: 280 }, right = { x: 670, y: 280 };
+          const R = 138;
+          drawText(ctx, 'input z loops around 0', left.x, 70, 20, '#ffc857', 'center', '900');
+          drawText(ctx, `${n} possible ${n}th roots`, right.x, 70, 20, '#8bd5ff', 'center', '900');
+
+          ctx.strokeStyle = 'rgba(255,200,87,0.45)'; ctx.lineWidth = 4;
+          ctx.beginPath(); ctx.arc(left.x, left.y, R, 0, TAU); ctx.stroke();
+          ctx.fillStyle = '#ff7d7d'; ctx.beginPath(); ctx.arc(left.x, left.y, 9, 0, TAU); ctx.fill();
+          const zx = left.x + R*Math.cos(theta), zy = left.y + R*Math.sin(theta);
+          ctx.strokeStyle = '#ffc857'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(left.x,left.y); ctx.lineTo(zx,zy); ctx.stroke();
+          ctx.fillStyle = '#ffc857'; ctx.beginPath(); ctx.arc(zx, zy, 14, 0, TAU); ctx.fill();
+          drawText(ctx, 'z', zx+22, zy, 18, '#fff4d7', 'left', '900');
+
+          ctx.strokeStyle = 'rgba(139,213,255,0.34)'; ctx.lineWidth = 4;
+          ctx.beginPath(); ctx.arc(right.x, right.y, R, 0, TAU); ctx.stroke();
+          for (let k=0;k<n;k++) {
+            const ang = (theta + TAU*k)/n;
+            const x = right.x + R*Math.cos(ang), y = right.y + R*Math.sin(ang);
+            ctx.fillStyle = rootColors[k % rootColors.length];
+            ctx.beginPath(); ctx.arc(x,y,k===0 ? 18 : 13,0,TAU); ctx.fill();
+            drawText(ctx, k===0 ? 'tracked' : `${k+1}`, x, y, k===0 ? 10 : 12, '#10131f', 'center', '1000');
+          }
+          const trackedAngle = theta/n;
+          ctx.strokeStyle = '#8bd5ff'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(right.x,right.y); ctx.lineTo(right.x+R*Math.cos(trackedAngle), right.y+R*Math.sin(trackedAngle)); ctx.stroke();
+
+          const loops = Math.floor(deg / 360);
+          const branch = ((loops % n) + n) % n;
+          readout.innerHTML = `The input has made <strong>${loops}</strong> full loop${loops === 1 ? '' : 's'} around the seam. A continuously followed ${n}th root advances by <strong>${branch}</strong> clock notch${branch === 1 ? '' : 'es'} modulo ${n}.`;
+        }
+        function tick() {
+          if (!pageActive('clocks')) { requestAnimationFrame(tick); return; }
+          if (playing) {
+            let val = Number(aInput.value) + 1.4;
+            if (val > Number(aInput.max)) val = 0;
+            aInput.value = val;
+          }
+          draw();
+          requestAnimationFrame(tick);
+        }
+        nInput.addEventListener('input', draw);
+        aInput.addEventListener('input', draw);
+        playBtn.addEventListener('click', () => { playing = !playing; playBtn.textContent = playing ? 'Pause loop' : 'Play loop'; });
+        resetBtn.addEventListener('click', () => { aInput.value = 0; playing = false; playBtn.textContent = 'Play loop'; draw(); });
+        bindCircularAngleDrag(canvas, () => ({ x: 230, y: 280 }), aInput, draw, {
+          onStart: () => { playing = false; playBtn.textContent = 'Play loop'; }
+        });
+        tick();
+      }
+
+      function initSeamCanvas() {
+        const canvas = $('#seamCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const nInput = $('#seamN'), aInput = $('#seamAngle'), playBtn = $('#seamPlay'), cutBtn = $('#seamCut'), resetBtn = $('#seamReset');
+        const nRead = $('#seamNRead'), aRead = $('#seamAngleRead'), readout = $('#seamReadout');
+        let playing = false, showCut = false;
+        function draw() {
+          const n = Number(nInput.value), deg = Number(aInput.value), theta = deg*Math.PI/180;
+          nRead.textContent = n; aRead.textContent = `${deg}°`;
+          const w = canvas.width, h = canvas.height;
+          clearCanvas(ctx, canvas);
+          drawGrid(ctx, w, h, { step: 64 });
+          const left = { x: 230, y: 280 }, right = { x: 670, y: 280 };
+          const R = 128;
+          drawText(ctx, 'coefficient/input sheet', left.x, 68, 20, '#ffc857', 'center', '900');
+          drawText(ctx, 'root sheets above it', right.x, 68, 20, '#8bd5ff', 'center', '900');
+
+          if (showCut) {
+            ctx.strokeStyle = 'rgba(249,168,212,0.55)'; ctx.lineWidth = 6; ctx.setLineDash([10, 8]);
+            ctx.beginPath(); ctx.moveTo(left.x, left.y); ctx.lineTo(left.x - 170, left.y); ctx.stroke();
+            ctx.setLineDash([]);
+            drawText(ctx, 'chosen branch cut', left.x - 112, left.y - 20, 14, '#f9a8d4', 'center', '800');
+          }
+
+          ctx.strokeStyle = 'rgba(255,255,255,0.18)'; ctx.lineWidth = 3;
+          ctx.beginPath(); ctx.arc(left.x,left.y,R,0,TAU); ctx.stroke();
+          ctx.fillStyle = '#ff7d7d'; ctx.beginPath(); ctx.arc(left.x,left.y,13,0,TAU); ctx.fill();
+          drawText(ctx, 'seam', left.x, left.y+35, 14, '#ffb3b3', 'center', '900');
+          const zx = left.x + R*Math.cos(theta), zy = left.y + R*Math.sin(theta);
+          ctx.strokeStyle = '#ffc857'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(left.x,left.y,R,0,theta, false); ctx.stroke();
+          ctx.fillStyle = '#ffc857'; ctx.beginPath(); ctx.arc(zx,zy,14,0,TAU); ctx.fill();
+
+          const lift = Math.sin(theta / n) * 52;
+          for (let k=0;k<n;k++) {
+            const ang = (theta + TAU*k)/n;
+            const x = right.x + R*Math.cos(ang);
+            const y = right.y + R*Math.sin(ang) - (k===0 ? lift : 0);
+            ctx.strokeStyle = rootColors[k % rootColors.length];
+            ctx.globalAlpha = 0.32;
+            ctx.beginPath(); ctx.arc(right.x, right.y - (k===0 ? lift : 0), R, 0, TAU); ctx.stroke();
+            ctx.globalAlpha = 1;
+            ctx.fillStyle = rootColors[k % rootColors.length];
+            ctx.beginPath(); ctx.arc(x,y,k===0?18:12,0,TAU); ctx.fill();
+            drawText(ctx, k===0?'follow':'sheet '+(k+1), x, y, k===0?10:10, '#10131f', 'center', '1000');
+          }
+          ctx.strokeStyle = 'rgba(255,255,255,0.18)'; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.moveTo(left.x+155,left.y); ctx.bezierCurveTo(360,190,520,370,right.x-155,right.y); ctx.stroke();
+          drawText(ctx, 'one safe loop can change sheets', 450, 405, 15, '#c5bdae', 'center', '800');
+          const loops = Math.floor(deg/360);
+          const branch = ((loops % n) + n) % n;
+          readout.innerHTML = `The point avoids the seam at the center, but it winds around it. After <strong>${loops}</strong> full input loop${loops===1?'':'s'}, the followed branch has shifted by <strong>${branch}</strong> sheet${branch===1?'':'s'} modulo ${n}.`;
+        }
+        function tick() {
+          if (!pageActive('seams')) { requestAnimationFrame(tick); return; }
+          if (playing) {
+            let v = Number(aInput.value) + 1.2;
+            if (v > Number(aInput.max)) v = 0;
+            aInput.value = v;
+          }
+          draw();
+          requestAnimationFrame(tick);
+        }
+        nInput.addEventListener('input', draw);
+        aInput.addEventListener('input', draw);
+        playBtn.addEventListener('click', () => { playing = !playing; playBtn.textContent = playing ? 'Pause' : 'Play around seam'; });
+        cutBtn.addEventListener('click', () => { showCut = !showCut; cutBtn.textContent = showCut ? 'Hide branch cut' : 'Show branch cut'; draw(); });
+        resetBtn.addEventListener('click', () => { aInput.value = 0; playing = false; playBtn.textContent = 'Play around seam'; draw(); });
+        bindCircularAngleDrag(canvas, () => ({ x: 230, y: 280 }), aInput, draw, {
+          onStart: () => { playing = false; playBtn.textContent = 'Play around seam'; }
+        });
+        tick();
+      }
+
+      function branchPointsForA(A) {
+        const W = -256 * Math.pow(A, 5) / 3125;
+        const radius = Math.pow(Math.abs(W), 0.25);
+        const base = W >= 0 ? 0 : Math.PI/4;
+        const out = [];
+        for (let k=0;k<4;k++) out.push(c(radius*Math.cos(base + k*TAU/4), radius*Math.sin(base + k*TAU/4)));
+        return out;
+      }
+
+      function initLoopTracker() {
+        const coefCanvas = $('#coefCanvas'), rootCanvas = $('#rootCanvas');
+        if (!coefCanvas || !rootCanvas) return;
+        const coefCtx = coefCanvas.getContext('2d'), rootCtx = rootCanvas.getContext('2d');
+        const ids = {
+          cx: $('#loopCx'), cy: $('#loopCy'), r: $('#loopR'), speed: $('#loopSpeed'),
+          cxR: $('#loopCxRead'), cyR: $('#loopCyRead'), rR: $('#loopRRead'), sR: $('#loopSpeedRead'),
+          play: $('#loopPlay'), step: $('#loopStep'), reset: $('#loopReset'), trails: $('#loopTrails'), preset: $('#loopPreset'), readout: $('#loopReadout')
+        };
+        const A = -1;
+        const bp = branchPointsForA(A);
+        let state = {
+          theta: 0,
+          playing: true,
+          cycles: 0,
+          initialRoots: [],
+          trackedRoots: [],
+          trails: [[],[],[],[],[]],
+          lastTime: 0,
+          lastMapping: 'not completed yet',
+          warning: ''
+        };
+        let drag = null;
+        let pendingDrag = null;
+        let dragFrame = 0;
+
+        function center() { return c(Number(ids.cx.value), Number(ids.cy.value)); }
+        function radius() { return Number(ids.r.value); }
+        function speed() { return Number(ids.speed.value); }
+        function BAt(theta = state.theta) { return cadd(center(), c(radius()*Math.cos(theta), radius()*Math.sin(theta))); }
+        function distToSeams(B) { return Math.min(...bp.map(p => cabs(csub(B, p)))); }
+        function mapCoef(z) {
+          const w = coefCanvas.width, h = coefCanvas.height, range = 1.55;
+          return { x: w/2 + z.re/range*w/2, y: h/2 - z.im/range*h/2 };
+        }
+        function unmapCoefPoint(pt) {
+          const range = 1.55;
+          return c((pt.x - coefCanvas.width/2)/(coefCanvas.width/2)*range, -(pt.y - coefCanvas.height/2)/(coefCanvas.height/2)*range);
+        }
+        function mapRoot(z, roots) {
+          const w = rootCanvas.width, h = rootCanvas.height;
+          const maxAbs = Math.max(1.35, ...roots.map(cabs)) * 1.22;
+          return { x: w/2 + z.re/maxAbs*w/2, y: h/2 - z.im/maxAbs*h/2, range: maxAbs };
+        }
+        function setCenterValue(z) {
+          setRangeValue(ids.cx, z.re, 2);
+          setRangeValue(ids.cy, z.im, 2);
+        }
+        function setRadiusValue(r) {
+          return setRangeValue(ids.r, r, 2);
+        }
+        function rootsAtCurrent() {
+          return durandKernerQuintic(A, BAt());
+        }
+        function resetTracking() {
+          state.theta = 0;
+          state.cycles = 0;
+          const roots = sortRootsForStart(durandKernerQuintic(A, BAt(0)));
+          state.initialRoots = cloneRoots(roots);
+          state.trackedRoots = cloneRoots(roots);
+          state.trails = roots.map(r => [c(r.re, r.im)]);
+          state.lastMapping = 'tracking reset; complete one loop to see the net relabeling';
+          state.warning = '';
+        }
+        function rebuildTrackingHere(note) {
+          state.cycles = 0;
+          const start = sortRootsForStart(durandKernerQuintic(A, BAt(0)));
+          const currentRaw = durandKernerQuintic(A, BAt());
+          const current = matchByNearest(start, currentRaw);
+          state.initialRoots = cloneRoots(start);
+          state.trackedRoots = cloneRoots(current);
+          state.trails = current.map(r => [c(r.re, r.im)]);
+          state.lastMapping = note || 'loop geometry changed; tracking restarted for this edited loop';
+          state.warning = '';
+        }
+        function updateRoots() {
+          const B = BAt();
+          const raw = rootsAtCurrent();
+          state.trackedRoots = matchByNearest(state.trackedRoots, raw);
+          for (let i=0;i<5;i++) {
+            const trail = state.trails[i];
+            trail.push(c(state.trackedRoots[i].re, state.trackedRoots[i].im));
+            if (trail.length > 260) trail.shift();
+          }
+          const d = distToSeams(B);
+          state.warning = d < 0.035 ? 'Very close to a seam: two roots nearly collide, so tracking becomes delicate.' : '';
+        }
+        function computeMappingText() {
+          const p = bestPermIndices(state.trackedRoots, state.initialRoots);
+          const parts = p.map((slot, i) => `${rootSymbols[i]}→start ${slot+1}`);
+          const identity = p.every((slot, i) => slot === i);
+          return identity ? 'identity: every followed label returned to its starting slot' : parts.join(', ');
+        }
+        function drawCoef() {
+          const ctx = coefCtx, w = coefCanvas.width, h = coefCanvas.height;
+          clearCanvas(ctx, coefCanvas); drawGrid(ctx,w,h,{step:62});
+          drawText(ctx, 'B = Re(B) + i Im(B)', 24, 28, 18, '#ffc857', 'left', '900');
+          drawText(ctx, 'drag dots • tap empty plane to recenter', 24, h-24, 14, '#c5bdae', 'left', '800');
+          drawText(ctx, 'discriminant seam points', w-24, 28, 15, '#ffb3b3', 'right', '800');
+          ctx.save();
+          bp.forEach((p, i) => {
+            const m = mapCoef(p);
+            const g = ctx.createRadialGradient(m.x,m.y,0,m.x,m.y,42);
+            g.addColorStop(0, 'rgba(255,125,125,0.48)'); g.addColorStop(1, 'rgba(255,125,125,0)');
+            ctx.fillStyle = g; ctx.beginPath(); ctx.arc(m.x,m.y,42,0,TAU); ctx.fill();
+            ctx.fillStyle = '#ff7d7d'; ctx.beginPath(); ctx.arc(m.x,m.y,8,0,TAU); ctx.fill();
+            drawText(ctx, `seam ${i+1}`, m.x+14, m.y-14, 13, '#ffd1d1', 'left', '900');
+          });
+          const cen = center(), C = mapCoef(cen), rPx = radius() / 1.55 * w/2;
+          ctx.strokeStyle = 'rgba(255,200,87,0.75)'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(C.x,C.y,rPx,0,TAU); ctx.stroke();
+          ctx.fillStyle = 'rgba(255,200,87,0.16)'; ctx.beginPath(); ctx.arc(C.x,C.y,22,0,TAU); ctx.fill();
+          ctx.strokeStyle = 'rgba(255,255,255,0.70)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(C.x,C.y,15,0,TAU); ctx.stroke();
+          ctx.fillStyle = 'rgba(255,200,87,0.95)'; ctx.beginPath(); ctx.arc(C.x,C.y,8,0,TAU); ctx.fill();
+          drawText(ctx, 'center', C.x+18, C.y+22, 12, '#ffe8a3', 'left', '900');
+          const B = BAt(), M = mapCoef(B);
+          ctx.strokeStyle = '#fff4d7'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(C.x,C.y); ctx.lineTo(M.x,M.y); ctx.stroke();
+          ctx.fillStyle = 'rgba(255,200,87,0.17)'; ctx.beginPath(); ctx.arc(M.x,M.y,25,0,TAU); ctx.fill();
+          ctx.fillStyle = '#ffc857'; ctx.beginPath(); ctx.arc(M.x,M.y,14,0,TAU); ctx.fill();
+          ctx.strokeStyle = 'rgba(255,255,255,0.82)'; ctx.lineWidth = 2; ctx.stroke();
+          drawText(ctx, 'current B', M.x+20, M.y, 13, '#fff4d7', 'left', '900');
+          if (drag) {
+            const active = drag.mode === 'center' ? C : M;
+            ctx.strokeStyle = 'rgba(255,255,255,0.92)'; ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.arc(active.x, active.y, 33, 0, TAU); ctx.stroke();
+          }
+          ctx.restore();
+        }
+        function drawRoot() {
+          const ctx = rootCtx, w = rootCanvas.width, h = rootCanvas.height;
+          clearCanvas(ctx, rootCanvas); drawGrid(ctx,w,h,{step:62});
+          drawText(ctx, 'roots of z⁵ − z + B', 24, 28, 18, '#8bd5ff', 'left', '900');
+          const allForScale = state.trackedRoots.concat(...state.trails);
+          const map = z => mapRoot(z, allForScale);
+          for (let i=0;i<5;i++) {
+            const trail = state.trails[i];
+            if (trail.length > 1) {
+              ctx.strokeStyle = rootColors[i]; ctx.globalAlpha = 0.35; ctx.lineWidth = 2.5; ctx.beginPath();
+              trail.forEach((z, j) => { const m = map(z); if (j===0) ctx.moveTo(m.x,m.y); else ctx.lineTo(m.x,m.y); });
+              ctx.stroke(); ctx.globalAlpha = 1;
+            }
+          }
+          for (let i=0;i<5;i++) {
+            const m = map(state.trackedRoots[i]);
+            ctx.fillStyle = rootColors[i]; ctx.beginPath(); ctx.arc(m.x,m.y,18,0,TAU); ctx.fill();
+            ctx.strokeStyle = 'rgba(255,255,255,0.75)'; ctx.lineWidth = 2; ctx.stroke();
+            drawText(ctx, rootSymbols[i], m.x, m.y, 12, '#10131f', 'center', '1000');
+          }
+        }
+        function drawReadout() {
+          ids.cxR.textContent = fmt(Number(ids.cx.value)); ids.cyR.textContent = fmt(Number(ids.cy.value)); ids.rR.textContent = fmt(radius()); ids.sR.textContent = `${fmt(speed())}×`;
+          const B = BAt(); const d = distToSeams(B);
+          const warn = state.warning ? `<br><strong style="color:#ffb3b3">${state.warning}</strong>` : '';
+          ids.readout.innerHTML = `<strong>Current polynomial:</strong> z⁵ − z + (${fmt(B.re,3)} ${B.im < 0 ? '−' : '+'} ${fmt(Math.abs(B.im),3)}i). ` +
+            `<strong>Nearest seam distance:</strong> ${fmt(d,4)}. <strong>Net loops:</strong> ${state.cycles}. ` +
+            `<strong>Latest net relabeling:</strong> ${state.lastMapping}.${warn}`;
+        }
+        function drawAll() { drawCoef(); drawRoot(); drawReadout(); }
+        function advanceThetaTo(nextWrappedAngle) {
+          const before = Math.floor(state.theta / TAU);
+          const currentWrapped = wrapAngle(state.theta);
+          const delta = signedAngleDelta(currentWrapped, wrapAngle(nextWrappedAngle));
+          state.theta += delta;
+          const after = Math.floor(state.theta / TAU);
+          return after - before;
+        }
+        function finishManualMove(crossed) {
+          updateRoots();
+          if (crossed) {
+            state.cycles += crossed;
+            state.lastMapping = computeMappingText();
+          }
+          drawAll();
+        }
+        function step(dt) {
+          const before = Math.floor(state.theta / TAU);
+          state.theta += speed() * dt;
+          updateRoots();
+          const crossed = Math.floor(state.theta / TAU) - before;
+          if (crossed) {
+            state.cycles += crossed;
+            state.lastMapping = computeMappingText();
+          }
+          drawAll();
+        }
+        function animate(ts) {
+          if (!pageActive('loops')) { state.lastTime = ts; requestAnimationFrame(animate); return; }
+          if (!state.lastTime) state.lastTime = ts;
+          const dt = Math.min(0.04, (ts - state.lastTime)/1000);
+          state.lastTime = ts;
+          if (state.playing && !drag) step(dt); else drawAll();
+          requestAnimationFrame(animate);
+        }
+        function applyPreset(name) {
+          const r = cabs(bp[0]);
+          let cx=bp[0].re, cy=bp[0].im, rad=0.18;
+          if (name === 'miss') { cx = 0; cy = 0; rad = Math.max(0.16, r*0.30); }
+          if (name === 'one') { cx = bp[0].re; cy = bp[0].im; rad = Math.max(0.16, r*0.34); }
+          if (name === 'two') { cx = r/2; cy = r/2; rad = r*0.84; }
+          if (name === 'all') { cx = 0; cy = 0; rad = r*1.28; }
+          if (name === 'near') { cx = r + 0.34; cy = 0; rad = 0.22; }
+          if (name === 'danger') { cx = r + 0.20; cy = 0; rad = 0.20; }
+          ids.cx.value = clamp(cx, -1.4, 1.4); ids.cy.value = clamp(cy, -1.4, 1.4); ids.r.value = clamp(rad, 0.02, 1.2);
+          resetTracking(); drawAll();
+        }
+        function hitMode(pt, ev) {
+          const coarse = ev.pointerType === 'touch' || ev.pointerType === 'pen' || matchMedia('(pointer: coarse)').matches;
+          const hit = coarse ? 44 : 27;
+          const C = mapCoef(center()), M = mapCoef(BAt());
+          const rPx = radius() / 1.55 * coefCanvas.width / 2;
+          if (pxDist(pt, M) <= hit + 8) return 'B';
+          if (pxDist(pt, C) <= hit) return 'center';
+          if (Math.abs(pxDist(pt, C) - rPx) <= hit) return 'sweep';
+          return 'center';
+        }
+        function pointerSnapshot(ev) {
+          return { clientX: ev.clientX, clientY: ev.clientY, pointerId: ev.pointerId, pointerType: ev.pointerType || 'mouse' };
+        }
+        function applyDrag() {
+          dragFrame = 0;
+          if (!drag || !pendingDrag) return;
+          const ev = pendingDrag;
+          pendingDrag = null;
+          const pt = canvasPoint(coefCanvas, ev);
+          const z = unmapCoefPoint(pt);
+          let crossed = 0;
+          if (drag.mode === 'center') {
+            setCenterValue(cadd(z, drag.centerOffset));
+            rebuildTrackingHere('loop center moved; tracking restarted for this edited loop');
+            drawAll();
+            return;
+          }
+          const cen = center();
+          const target = cadd(z, drag.bOffset);
+          const v = csub(target, cen);
+          const rawRadius = Math.max(cabs(v), 1e-6);
+          setRadiusValue(rawRadius);
+          crossed = advanceThetaTo(Math.atan2(v.im, v.re));
+          finishManualMove(crossed);
+        }
+        function scheduleDrag(ev) {
+          pendingDrag = pointerSnapshot(ev);
+          if (!dragFrame) dragFrame = requestAnimationFrame(applyDrag);
+        }
+        coefCanvas.addEventListener('pointerdown', ev => {
+          if (ev.button !== undefined && ev.button !== 0) return;
+          ev.preventDefault();
+          state.playing = false;
+          ids.play.textContent = 'Play';
+          const pt = canvasPoint(coefCanvas, ev);
+          const z = unmapCoefPoint(pt);
+          const cen = center();
+          const B = BAt();
+          const mode = hitMode(pt, ev);
+          drag = {
+            id: ev.pointerId,
+            mode,
+            centerOffset: mode === 'center' ? csub(cen, z) : c(0,0),
+            bOffset: mode === 'B' ? csub(B, z) : c(0,0)
+          };
+          if (mode === 'center' && pxDist(pt, mapCoef(cen)) > 44) drag.centerOffset = c(0,0);
+          coefCanvas.classList.add('is-dragging');
+          try { coefCanvas.setPointerCapture(ev.pointerId); } catch(e) {}
+          scheduleDrag(ev);
+        }, { passive: false });
+        coefCanvas.addEventListener('pointermove', ev => {
+          if (!drag || ev.pointerId !== drag.id) return;
+          ev.preventDefault();
+          scheduleDrag(ev);
+        }, { passive: false });
+        function endDrag(ev) {
+          if (!drag || ev.pointerId !== drag.id) return;
+          ev.preventDefault();
+          pendingDrag = pointerSnapshot(ev);
+          if (dragFrame) { cancelAnimationFrame(dragFrame); dragFrame = 0; }
+          applyDrag();
+          try { coefCanvas.releasePointerCapture(ev.pointerId); } catch(e) {}
+          coefCanvas.classList.remove('is-dragging');
+          drag = null;
+        }
+        coefCanvas.addEventListener('pointerup', endDrag, { passive: false });
+        coefCanvas.addEventListener('pointercancel', endDrag, { passive: false });
+        coefCanvas.addEventListener('lostpointercapture', () => { coefCanvas.classList.remove('is-dragging'); drag = null; });
+
+        [ids.cx, ids.cy, ids.r].forEach(el => el.addEventListener('input', () => { resetTracking(); drawAll(); }));
+        ids.speed.addEventListener('input', drawAll);
+        ids.play.addEventListener('click', () => { state.playing = !state.playing; ids.play.textContent = state.playing ? 'Pause' : 'Play'; });
+        ids.step.addEventListener('click', () => { state.playing = false; ids.play.textContent = 'Play'; step(0.16); });
+        ids.reset.addEventListener('click', () => { resetTracking(); drawAll(); });
+        ids.trails.addEventListener('click', () => { state.trails = state.trackedRoots.map(r => [c(r.re, r.im)]); drawAll(); });
+        ids.preset.addEventListener('change', () => applyPreset(ids.preset.value));
+        applyPreset('one');
+        requestAnimationFrame(animate);
+      }
+
+      function parityOf(p) {
+        let inv = 0;
+        for (let i=0;i<p.length;i++) for (let j=i+1;j<p.length;j++) if (p[i] > p[j]) inv++;
+        return inv % 2;
+      }
+      function renderCards(container, perm) {
+        container.innerHTML = '';
+        perm.forEach((idx) => {
+          const card = document.createElement('div');
+          card.className = 'root-card';
+          card.textContent = rootSymbols[idx];
+          container.append(card);
+        });
+      }
+      function swapPositions(arr, i, j) { const p = arr.slice(); [p[i], p[j]] = [p[j], p[i]]; return p; }
+      function cyclePositions(arr, positions) {
+        const p = arr.slice();
+        const last = p[positions[positions.length-1]];
+        for (let k=positions.length-1;k>0;k--) p[positions[k]] = p[positions[k-1]];
+        p[positions[0]] = last;
+        return p;
+      }
+
+      function initParityDemo() {
+        const cards = $('#parityCards');
+        if (!cards) return;
+        let perm = [0,1,2,3,4];
+        const read = $('#parityReadout'), even = $('#evenRoom'), odd = $('#oddRoom');
+        function render(note = '') {
+          renderCards(cards, perm);
+          const oddParity = parityOf(perm);
+          even.classList.toggle('active-even', !oddParity);
+          odd.classList.toggle('active-odd', !!oddParity);
+          read.innerHTML = `<strong>Current arrangement:</strong> ${perm.map(i => rootSymbols[i]).join(' ')}. ` +
+            `<strong>Parity:</strong> ${oddParity ? 'odd' : 'even'}. ` +
+            `<strong>Square-root branch:</strong> ${oddParity ? '−√Δ' : '+√Δ'}. ${note}`;
+        }
+        $('#paritySwap12').addEventListener('click', () => { perm = swapPositions(perm,0,1); render('A single swap flips the yes/no answer.'); });
+        $('#paritySwap23').addEventListener('click', () => { perm = swapPositions(perm,1,2); render('Any single swap flips the sign of V.'); });
+        $('#parityCycle3').addEventListener('click', () => { perm = cyclePositions(perm,[0,1,2]); render('A 3-cycle is two swaps, so it preserves the sign.'); });
+        $('#parityCycle5').addEventListener('click', () => { perm = cyclePositions(perm,[0,1,2,3,4]); render('A 5-cycle is four swaps, so it preserves the sign.'); });
+        $('#parityReset').addEventListener('click', () => { perm = [0,1,2,3,4]; render('Reset to the starting orientation.'); });
+        render();
+      }
+
+      function applyPermutationToState(state, action) {
+        if (action === 'swap') return swapPositions(state,0,1);
+        if (action === 'cycle') return cyclePositions(state,[0,1,2,3,4]);
+        return state;
+      }
+      function stateKey(p) { return p.join(''); }
+      function reachableCount() {
+        const start = [0,1,2,3,4];
+        const q = [start];
+        const seen = new Set([stateKey(start)]);
+        while (q.length) {
+          const s = q.shift();
+          for (const action of ['swap','cycle']) {
+            const t = applyPermutationToState(s, action);
+            const k = stateKey(t);
+            if (!seen.has(k)) { seen.add(k); q.push(t); }
+          }
+        }
+        return seen.size;
+      }
+      function initWallDemo() {
+        const cards = $('#wallCards');
+        if (!cards) return;
+        let perm = [0,1,2,3,4];
+        const read = $('#wallReadout');
+        const totalReachable = reachableCount();
+        function render(note = '') {
+          renderCards(cards, perm);
+          read.innerHTML = `<strong>Current labeling:</strong> ${perm.map(i => rootSymbols[i]).join(' ')}. ` +
+            `<strong>These two loop-types can reach:</strong> ${totalReachable} of 120 labelings. ${note}`;
+        }
+        $('#wallSwap').addEventListener('click', () => { perm = applyPermutationToState(perm,'swap'); render('A seam-loop can act like a transposition.'); });
+        $('#wallCycle').addEventListener('click', () => { perm = applyPermutationToState(perm,'cycle'); render('A broad loop can rotate the five labels.'); });
+        $('#wallRandom').addEventListener('click', () => { const n = 6 + Math.floor(Math.random()*10); for (let i=0;i<n;i++) perm = applyPermutationToState(perm, Math.random()<0.5?'swap':'cycle'); render(`Mixed ${n} loop moves.`); });
+        $('#wallReset').addEventListener('click', () => { perm = [0,1,2,3,4]; render('Reset.'); });
+        render();
+      }
+
+      function factorial(n) { let out=1; for (let i=2;i<=n;i++) out*=i; return out; }
+      function initDegreeLadder() {
+        const slider = $('#degreeSlider');
+        if (!slider) return;
+        const read = $('#degreeRead'), explanation = $('#degreeExplanation'), ladder = $('#degreeLadder');
+        const data = {
+          2: [
+            ['2 labelings', 'Two possible root names.', 'ok'],
+            ['√ discriminant', 'The yes/no split names both roots.', 'ok'],
+            ['finished', 'The radical door reaches individual roots.', 'ok'],
+            ['works', 'Quadratic formula.', 'ok']
+          ],
+          3: [
+            ['6 labelings', 'The puzzle is larger.', 'ok'],
+            ['yes/no split', 'Discriminant separates parity.', 'ok'],
+            ['3-clock', 'A resolvent leaves a cube-root choice.', 'ok'],
+            ['works', 'Cubic formula.', 'ok']
+          ],
+          4: [
+            ['24 labelings', 'More bookkeeping.', 'ok'],
+            ['pairing handle', 'Roots can be grouped into useful pairs.', 'ok'],
+            ['quadratic splits', 'The problem breaks into smaller doors.', 'ok'],
+            ['works', 'Quartic formula.', 'ok']
+          ],
+          5: [
+            ['120 labelings', 'All five-root shuffles appear.', 'blocked'],
+            ['yes/no split', '√Δ reduces 120 to 60.', 'ok'],
+            ['60-part core', 'The even shuffles remain interlocked.', 'blocked'],
+            ['wall', 'No universal radical handle exists.', 'blocked']
+          ]
+        };
+        function render() {
+          const d = Number(slider.value); read.textContent = d;
+          explanation.innerHTML = d < 5
+            ? `<strong>Degree ${d}:</strong> ${factorial(d)} possible labelings, and the necessary radical handles exist. The formula may be complicated, but the label puzzle is peelable.`
+            : `<strong>Degree 5:</strong> ${factorial(d)} possible labelings. The discriminant gives a first yes/no split, but the remaining 60-piece core has no smaller stable split compatible with radicals.`;
+          ladder.innerHTML = '';
+          data[d].forEach(([title, body, cls]) => {
+            const div = document.createElement('div');
+            div.className = `ladder-step ${cls}`;
+            div.innerHTML = `<strong>${title}</strong><span class="dim">${body}</span>`;
+            ladder.append(div);
+          });
+        }
+        slider.addEventListener('input', render);
+        render();
+      }
+
+      function initAll() {
+        setupRouter();
+        initHeroCanvas();
+        initClockCanvas();
+        initSeamCanvas();
+        initLoopTracker();
+        initParityDemo();
+        initWallDemo();
+        initDegreeLadder();
+      }
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initAll); else initAll();
+    })();
+  </script>
+</body>
+</html>

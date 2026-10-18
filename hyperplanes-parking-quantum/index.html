@@ -1,0 +1,1029 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hyperplanes, Parking Functions & Quantum Physics — a mini demo</title>
+  <style>
+    :root{
+      --bg:#11131b;
+      --panel:#181b27;
+      --panel2:#202432;
+      --ink:#f5f1e8;
+      --muted:#c7c0b4;
+      --dim:#8f879a;
+      --accent:#7de2d1;
+      --accent2:#f9c74f;
+      --accent3:#f2777a;
+      --accent4:#a78bfa;
+      --accent5:#84cc16;
+      --line:rgba(255,255,255,.14);
+      --shadow:0 22px 70px rgba(0,0,0,.35);
+      --radius:24px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --serif: Georgia, "Times New Roman", serif;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      background:
+        radial-gradient(circle at 15% 0%, rgba(125,226,209,.18), transparent 32rem),
+        radial-gradient(circle at 92% 8%, rgba(167,139,250,.18), transparent 28rem),
+        radial-gradient(circle at 40% 100%, rgba(242,119,122,.14), transparent 32rem),
+        var(--bg);
+      color:var(--ink);
+      font-family:var(--sans);
+      line-height:1.55;
+    }
+    a{color:var(--accent); text-decoration:none}
+    a:hover{text-decoration:underline}
+    .wrap{width:min(1180px, calc(100% - 34px)); margin:auto}
+    .hero{
+      min-height:92vh;
+      display:grid;
+      align-items:center;
+      padding:72px 0 54px;
+      position:relative;
+      overflow:hidden;
+    }
+    .hero:after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background-image:
+        linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px);
+      background-size:46px 46px;
+      mask-image:linear-gradient(to bottom, rgba(0,0,0,.75), transparent 82%);
+      pointer-events:none;
+    }
+    .hero .wrap{position:relative; z-index:1}
+    .eyebrow{
+      display:inline-flex; gap:10px; align-items:center;
+      padding:8px 12px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      color:var(--muted);
+      background:rgba(255,255,255,.04);
+      backdrop-filter: blur(10px);
+      font-size:.91rem;
+    }
+    .pulse-dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 0 rgba(125,226,209,.65); animation:pulse 2.2s infinite}
+    @keyframes pulse{70%{box-shadow:0 0 0 13px rgba(125,226,209,0)} 100%{box-shadow:0 0 0 0 rgba(125,226,209,0)}}
+    h1{
+      font-size:clamp(2.75rem, 8vw, 7.3rem);
+      line-height:.92;
+      letter-spacing:-.075em;
+      margin:28px 0 20px;
+      max-width:1050px;
+    }
+    .lede{
+      font-size:clamp(1.08rem, 2.1vw, 1.42rem);
+      color:var(--muted);
+      max-width:850px;
+      margin:0 0 26px;
+    }
+    .actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
+    .button{
+      display:inline-flex; align-items:center; gap:8px;
+      border:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(255,255,255,.1), rgba(255,255,255,.035));
+      color:var(--ink);
+      padding:12px 16px;
+      border-radius:999px;
+      box-shadow:0 8px 28px rgba(0,0,0,.18);
+      font-weight:650;
+    }
+    .button.primary{background:linear-gradient(135deg, rgba(125,226,209,.24), rgba(167,139,250,.18)); border-color:rgba(125,226,209,.36)}
+    .button:hover{text-decoration:none; transform:translateY(-1px)}
+    .meta-strip{
+      display:grid;
+      grid-template-columns:repeat(4, minmax(0,1fr));
+      gap:12px;
+      margin-top:38px;
+    }
+    .meta-card{
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:14px;
+      background:rgba(24,27,39,.72);
+      backdrop-filter:blur(10px);
+      min-height:104px;
+    }
+    .meta-card b{display:block;font-size:1.02rem;margin-bottom:4px}
+    .meta-card span{color:var(--muted);font-size:.93rem}
+    nav.sticky{
+      position:sticky; top:0; z-index:10;
+      border-bottom:1px solid var(--line);
+      background:rgba(17,19,27,.86);
+      backdrop-filter:blur(14px);
+    }
+    nav .wrap{display:flex; gap:10px; overflow-x:auto; padding:11px 0}
+    nav a{
+      white-space:nowrap;
+      color:var(--muted);
+      border:1px solid transparent;
+      border-radius:999px;
+      padding:8px 11px;
+      font-size:.9rem;
+    }
+    nav a:hover{color:var(--ink); text-decoration:none; border-color:var(--line); background:rgba(255,255,255,.04)}
+    section{padding:78px 0}
+    .section-head{display:flex; align-items:flex-end; justify-content:space-between; gap:24px; margin-bottom:28px}
+    .kicker{color:var(--accent); text-transform:uppercase; letter-spacing:.12em; font-weight:800; font-size:.78rem}
+    h2{font-size:clamp(2rem, 4.3vw, 4.1rem); line-height:.98; letter-spacing:-.045em; margin:7px 0 0}
+    h3{font-size:1.35rem; line-height:1.2; margin:0 0 10px}
+    p{margin:0 0 14px}
+    .muted{color:var(--muted)}
+    .dim{color:var(--dim)}
+    .grid{display:grid; gap:18px}
+    .grid.two{grid-template-columns:1.05fr .95fr}
+    .grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.065), rgba(255,255,255,.025));
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:22px;
+      box-shadow:var(--shadow);
+      position:relative;
+      overflow:hidden;
+    }
+    .card.soft{box-shadow:none;background:rgba(255,255,255,.035)}
+    .card:before{
+      content:"";
+      position:absolute;
+      inset:0 0 auto 0;
+      height:2px;
+      background:linear-gradient(90deg, transparent, rgba(125,226,209,.75), rgba(249,199,79,.55), transparent);
+      opacity:.78;
+    }
+    .diagram{
+      border-radius:20px;
+      border:1px solid rgba(255,255,255,.12);
+      background:radial-gradient(circle at 25% 15%, rgba(255,255,255,.06), transparent 30rem), rgba(0,0,0,.12);
+      min-height:290px;
+      display:grid;
+      place-items:center;
+      padding:12px;
+      overflow:hidden;
+    }
+    svg{max-width:100%; height:auto; display:block}
+    .badge-row{display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 2px}
+    .badge{
+      border:1px solid var(--line);
+      color:var(--muted);
+      background:rgba(255,255,255,.035);
+      border-radius:999px;
+      padding:5px 9px;
+      font-size:.79rem;
+      font-weight:700;
+    }
+    .badge.direct{border-color:rgba(125,226,209,.38); color:#bff8ef; background:rgba(125,226,209,.08)}
+    .badge.indirect{border-color:rgba(249,199,79,.36); color:#ffe29a; background:rgba(249,199,79,.08)}
+    .badge.caution{border-color:rgba(242,119,122,.36); color:#ffc3c5; background:rgba(242,119,122,.08)}
+    .equation{
+      font-family:var(--mono);
+      overflow:auto;
+      border-radius:16px;
+      background:rgba(0,0,0,.24);
+      border:1px solid rgba(255,255,255,.1);
+      padding:13px 14px;
+      color:#f7ead1;
+      margin:14px 0;
+      font-size:.93rem;
+    }
+    .mini-list{padding-left:1.1rem; margin:12px 0 0; color:var(--muted)}
+    .mini-list li{margin:6px 0}
+    .callout{
+      border-left:3px solid var(--accent);
+      background:rgba(125,226,209,.08);
+      padding:15px 16px;
+      border-radius:14px;
+      color:#e7fffb;
+      margin-top:16px;
+    }
+    .callout.yellow{border-left-color:var(--accent2); background:rgba(249,199,79,.08); color:#fff4d1}
+    .toolbar{
+      display:flex; flex-wrap:wrap; gap:8px;
+      margin:10px 0 22px;
+    }
+    .filter-btn{
+      color:var(--muted);
+      background:rgba(255,255,255,.04);
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:8px 11px;
+      cursor:pointer;
+      font:inherit;
+      font-weight:700;
+      font-size:.88rem;
+    }
+    .filter-btn[aria-pressed="true"]{color:var(--ink); border-color:rgba(125,226,209,.45); background:rgba(125,226,209,.12)}
+    body[data-focus="hyperplanes"] .connection-card:not([data-tags~="hyperplanes"]),
+    body[data-focus="parking"] .connection-card:not([data-tags~="parking"]),
+    body[data-focus="feynman"] .connection-card:not([data-tags~="feynman"]),
+    body[data-focus="integrable"] .connection-card:not([data-tags~="integrable"]){display:none}
+    .connection-card{transition:.2s ease}
+    .source-link{font-size:.84rem; color:var(--dim)}
+    .source-link a{color:#bdeee7}
+    sup a{font-weight:800; color:var(--accent2)}
+    .term-grid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px}
+    .term{padding:15px; border-radius:18px; background:rgba(255,255,255,.035); border:1px solid var(--line)}
+    .term b{display:block; margin-bottom:5px; color:#fff}
+    .term span{color:var(--muted)}
+    table{width:100%; border-collapse:collapse; overflow:hidden; border-radius:18px; border:1px solid var(--line)}
+    th,td{border-bottom:1px solid var(--line); padding:13px 14px; text-align:left; vertical-align:top}
+    th{background:rgba(255,255,255,.06); color:#fff}
+    tr:last-child td{border-bottom:0}
+    td{color:var(--muted)}
+    .meter{display:inline-flex; gap:3px; vertical-align:middle; margin-right:8px}
+    .pip{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.16)}
+    .pip.on{background:var(--accent)}
+    .pip.warn.on{background:var(--accent2)}
+    details{
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:13px 15px;
+      background:rgba(255,255,255,.035);
+      margin-top:12px;
+    }
+    summary{cursor:pointer; font-weight:800; color:#fff}
+    .refs{counter-reset:refs; display:grid; gap:10px}
+    .ref{counter-increment:refs; display:grid; grid-template-columns:42px 1fr; gap:10px; align-items:start; border:1px solid var(--line); border-radius:16px; padding:12px; background:rgba(255,255,255,.035)}
+    .ref:before{content:"[" counter(refs) "]"; color:var(--accent2); font-family:var(--mono); font-weight:900}
+    .ref p{margin:0;color:var(--muted)}
+    .ref b{color:#fff}
+    footer{padding:40px 0 70px; color:var(--dim)}
+    .tiny{font-size:.86rem}
+    .legend{display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-top:12px; color:var(--muted); font-size:.88rem}
+    .legend i{display:inline-block;width:12px;height:12px;border-radius:4px;margin-right:5px;vertical-align:-1px}
+    .toast{
+      position:fixed; right:18px; bottom:18px; z-index:20;
+      max-width:360px; padding:13px 15px; border-radius:18px;
+      border:1px solid var(--line); background:rgba(17,19,27,.92); backdrop-filter:blur(12px);
+      color:var(--muted); box-shadow:var(--shadow); opacity:0; transform:translateY(10px); pointer-events:none; transition:.25s ease;
+    }
+    .toast.show{opacity:1; transform:translateY(0)}
+    .kbd{font-family:var(--mono); border:1px solid var(--line); border-bottom-width:2px; border-radius:6px; padding:1px 6px; color:#fff; background:rgba(255,255,255,.05)}
+    @media (max-width:900px){
+      .grid.two,.grid.three,.meta-strip,.term-grid{grid-template-columns:1fr}
+      .hero{min-height:auto; padding-top:54px}
+      .section-head{display:block}
+      section{padding:58px 0}
+    }
+    @media print{
+      body{background:#fff;color:#111}
+      nav,.actions,.toolbar,.toast{display:none}
+      .card,.diagram,.meta-card,.term,details,.ref{box-shadow:none;background:#fff;color:#111;border-color:#ddd}
+      .muted,.dim,td{color:#333}
+      a{color:#075}
+    }
+  </style>
+</head>
+<body data-focus="all">
+  <header class="hero">
+    <div class="wrap">
+      <div class="eyebrow"><span class="pulse-dot"></span> A physics-first tour of established links</div>
+      <h1>Hyperplanes & parking functions in quantum physics</h1>
+      <p class="lede">A small, self-contained HTML demo for reading the Pak–Stanley world from the physics side: where hyperplanes genuinely organize quantum systems, and where parking functions enter through trees, sandpiles, and representation theory.</p>
+      <div class="actions">
+        <a class="button" href="parking-on-shi-streets.html">Parking on Shi Streets: interactive book</a>
+        <a class="button" href="../">All explainers</a>
+        <a class="button primary" href="#map">Start with the map →</a>
+        <a class="button" href="#dictionary">Physics dictionary</a>
+        <a class="button" href="#refs">References</a>
+      </div>
+      <div class="meta-strip">
+        <div class="meta-card"><b>Closest to QM</b><span>Calogero–Moser, Cherednik algebras, Bethe/Gaudin systems.</span></div>
+        <div class="meta-card"><b>Closest to QFT/CFT</b><span>KZ equations, WZW conformal blocks, graph/Symanzik polynomials.</span></div>
+        <div class="meta-card"><b>Closest to parking functions</b><span>G-parking functions, spanning trees, chip-firing, abelian sandpiles.</span></div>
+        <div class="meta-card"><b>Main caveat</b><span>Parking functions are usually labels/shadows, not standard quantum observables.</span></div>
+      </div>
+    </div>
+  </header>
+
+  <nav class="sticky" aria-label="Page sections">
+    <div class="wrap">
+      <a href="#map">Map</a>
+      <a href="#pak-stanley">Pak–Stanley</a>
+      <a href="#calogero">Calogero–Moser</a>
+      <a href="#bethe">Bethe/Gaudin</a>
+      <a href="#kz">KZ/CFT</a>
+      <a href="#gauge">3d N=4</a>
+      <a href="#feynman">Feynman graphs</a>
+      <a href="#sandpile">Sandpiles</a>
+      <a href="#cherednik">Parking spaces</a>
+      <a href="#takeaway">Takeaway</a>
+    </div>
+  </nav>
+
+  <main>
+    <section id="map">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <div class="kicker">Orientation</div>
+            <h2>The existing landscape</h2>
+          </div>
+          <p class="muted" style="max-width:430px">Use the filter buttons to separate direct hyperplane appearances from the more indirect parking-function appearances.</p>
+        </div>
+        <div class="toolbar" role="toolbar" aria-label="Filter connections">
+          <button class="filter-btn" data-focus="all" aria-pressed="true">All</button>
+          <button class="filter-btn" data-focus="hyperplanes" aria-pressed="false">Hyperplanes</button>
+          <button class="filter-btn" data-focus="parking" aria-pressed="false">Parking functions</button>
+          <button class="filter-btn" data-focus="integrable" aria-pressed="false">Integrable systems</button>
+          <button class="filter-btn" data-focus="feynman" aria-pressed="false">Feynman/QFT graphs</button>
+        </div>
+        <div class="grid two">
+          <div class="card">
+            <div class="diagram" aria-label="Connection map diagram">
+              <svg viewBox="0 0 880 560" role="img" aria-labelledby="mapTitle mapDesc">
+                <title id="mapTitle">Map from Pak-Stanley to quantum and statistical physics connections</title>
+                <desc id="mapDesc">A node diagram splitting into hyperplane arrangements and parking functions, then to quantum integrable systems, CFT, gauge theory, Feynman graph polynomials, sandpiles, and Cherednik representations.</desc>
+                <defs>
+                  <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7de2d1"/></marker>
+                  <linearGradient id="g1" x1="0" x2="1"><stop stop-color="#7de2d1"/><stop offset="1" stop-color="#a78bfa"/></linearGradient>
+                  <filter id="glow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                </defs>
+                <rect x="0" y="0" width="880" height="560" rx="26" fill="rgba(0,0,0,.08)"/>
+                <g fill="none" stroke="#7de2d1" stroke-width="3" marker-end="url(#arrow)" opacity=".85">
+                  <path d="M220 280 C300 210 320 155 402 120"/>
+                  <path d="M220 280 C305 285 335 285 410 280"/>
+                  <path d="M220 280 C300 355 330 420 405 440"/>
+                  <path d="M540 118 C610 100 650 88 735 86"/>
+                  <path d="M540 118 C613 140 650 160 735 178"/>
+                  <path d="M545 280 C620 250 650 235 735 235"/>
+                  <path d="M545 280 C615 297 650 314 735 322"/>
+                  <path d="M545 440 C615 418 654 398 735 392"/>
+                  <path d="M545 440 C615 462 655 482 735 486"/>
+                </g>
+                <g font-family="Inter, system-ui, sans-serif" text-anchor="middle">
+                  <g filter="url(#glow)">
+                    <rect x="54" y="220" width="260" height="120" rx="22" fill="rgba(125,226,209,.13)" stroke="rgba(125,226,209,.65)"/>
+                    <text x="184" y="260" fill="#fff" font-size="22" font-weight="800">Pak–Stanley</text>
+                    <text x="184" y="292" fill="#c7c0b4" font-size="16">Shi chambers ↔ parking labels</text>
+                    <text x="184" y="318" fill="#8f879a" font-size="13">your starting point</text>
+                  </g>
+                  <g>
+                    <rect x="388" y="70" width="185" height="96" rx="19" fill="rgba(125,226,209,.10)" stroke="rgba(125,226,209,.46)"/>
+                    <text x="480" y="107" fill="#fff" font-size="18" font-weight="800">Hyperplanes</text>
+                    <text x="480" y="133" fill="#c7c0b4" font-size="13">walls, singular loci</text>
+                  </g>
+                  <g>
+                    <rect x="390" y="232" width="185" height="96" rx="19" fill="rgba(249,199,79,.10)" stroke="rgba(249,199,79,.46)"/>
+                    <text x="482" y="270" fill="#fff" font-size="18" font-weight="800">Graphs / trees</text>
+                    <text x="482" y="296" fill="#c7c0b4" font-size="13">spanning-tree backbone</text>
+                  </g>
+                  <g>
+                    <rect x="388" y="392" width="185" height="96" rx="19" fill="rgba(167,139,250,.10)" stroke="rgba(167,139,250,.46)"/>
+                    <text x="480" y="430" fill="#fff" font-size="18" font-weight="800">Parking funcs</text>
+                    <text x="480" y="456" fill="#c7c0b4" font-size="13">chip-firing labels</text>
+                  </g>
+                  <g fill="#fff" font-size="14" font-weight="750">
+                    <rect x="720" y="49" width="132" height="70" rx="18" fill="rgba(125,226,209,.12)" stroke="rgba(125,226,209,.38)"/><text x="786" y="78">Calogero–</text><text x="786" y="99">Moser</text>
+                    <rect x="720" y="145" width="132" height="70" rx="18" fill="rgba(125,226,209,.12)" stroke="rgba(125,226,209,.38)"/><text x="786" y="174">KZ / WZW</text><text x="786" y="195">CFT</text>
+                    <rect x="720" y="202" width="132" height="70" rx="18" fill="rgba(125,226,209,.12)" stroke="rgba(125,226,209,.38)"/><text x="786" y="232">Bethe /</text><text x="786" y="253">Gaudin</text>
+                    <rect x="720" y="290" width="132" height="70" rx="18" fill="rgba(249,199,79,.12)" stroke="rgba(249,199,79,.40)"/><text x="786" y="319">Feynman</text><text x="786" y="340">polynomials</text>
+                    <rect x="720" y="360" width="132" height="70" rx="18" fill="rgba(167,139,250,.12)" stroke="rgba(167,139,250,.40)"/><text x="786" y="389">Sandpile</text><text x="786" y="410">/ LCFT</text>
+                    <rect x="720" y="455" width="132" height="70" rx="18" fill="rgba(167,139,250,.12)" stroke="rgba(167,139,250,.40)"/><text x="786" y="484">Cherednik</text><text x="786" y="505">parking space</text>
+                  </g>
+                </g>
+              </svg>
+            </div>
+          </div>
+          <div class="grid">
+            <article class="card soft connection-card" data-tags="hyperplanes integrable">
+              <div class="badge-row"><span class="badge direct">Direct</span><span class="badge">quantum mechanics</span></div>
+              <h3>Hyperplanes as singular walls</h3>
+              <p class="muted">In Calogero–Moser-type Hamiltonians, particle-collision hyperplanes <code>xᵢ = xⱼ</code> carry inverse-square singularities. The chambers are ordering sectors of particles.</p>
+            </article>
+            <article class="card soft connection-card" data-tags="hyperplanes integrable">
+              <div class="badge-row"><span class="badge direct">Direct</span><span class="badge">Bethe ansatz</span></div>
+              <h3>Arrangements as integrable models</h3>
+              <p class="muted">Varchenko assigns a quantum integrable model to a weighted affine arrangement; critical points of a master function control Hamiltonians/Bethe data.</p>
+            </article>
+            <article class="card soft connection-card" data-tags="parking">
+              <div class="badge-row"><span class="badge indirect">Indirect</span><span class="badge">statistical field theory</span></div>
+              <h3>Parking functions through sandpiles</h3>
+              <p class="muted">G-parking functions index algebra bases and are tied to spanning trees and recurrent sandpile configurations; 2D sandpiles connect to logarithmic CFT.</p>
+            </article>
+            <article class="card soft connection-card" data-tags="feynman parking">
+              <div class="badge-row"><span class="badge indirect">Shared skeleton</span><span class="badge caution">not Pak–Stanley standard</span></div>
+              <h3>Feynman graphs through spanning trees</h3>
+              <p class="muted">Symanzik polynomials are sums over spanning trees/forests. Parking functions can label tree-like data, but they do not encode full Feynman rules by themselves.</p>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="dictionary">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <div class="kicker">Physics dictionary</div>
+            <h2>How to read the math objects</h2>
+          </div>
+        </div>
+        <div class="term-grid">
+          <div class="term"><b>Hyperplane</b><span>A linear equation like <code>xᵢ − xⱼ = 0</code>. In physics it often appears as a collision locus, singular divisor, branch locus, or wall in parameter space.</span></div>
+          <div class="term"><b>Arrangement chamber</b><span>A connected component after removing all hyperplanes. Think “sector”: a particle ordering, vacuum chamber, integration contour region, or wall-crossing domain.</span></div>
+          <div class="term"><b>Complement/cohomology</b><span>The space where denominators do not vanish. Differential forms on this complement organize monodromy, periods, residues, and bases of integrals.</span></div>
+          <div class="term"><b>Master function</b><span>A multivalued potential-like function. Its critical points are Bethe-root-like data in several arrangement-based integrable systems.</span></div>
+          <div class="term"><b>G-parking function</b><span>A graph-dependent parking function. Equivalent viewpoints include chip-firing/sandpile data and labels closely tied to spanning trees.</span></div>
+          <div class="term"><b>Cherednik algebra</b><span>A noncommutative algebra built from a reflection group. It quantizes Calogero–Moser-type geometry and unexpectedly hosts parking-function representations.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="pak-stanley">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <div class="kicker">Starting point</div>
+            <h2>Pak–Stanley as the combinatorial portal</h2>
+          </div>
+        </div>
+        <div class="grid two">
+          <div class="card">
+            <h3>Shi chambers become parking labels</h3>
+            <p class="muted">For the type-A Shi arrangement, Pak–Stanley labeling gives a bijection between regions and parking functions. For <code>n = 3</code>, the arrangement is drawn in a 2D slice of <code>x₁ + x₂ + x₃ = 0</code>. The sketch below uses the equivalent three-family line picture.</p>
+            <div class="equation">Shi(A₂):  xᵢ − xⱼ = 0 or 1, for 1 ≤ i &lt; j ≤ 3</div>
+            <p class="source-link">Background: Stanley’s paper on hyperplane arrangements, parking functions, and tree inversions.<sup><a href="#ref-stanley">[1]</a></sup></p>
+            <details>
+              <summary>One convention warning</summary>
+              <p class="muted">Parking functions may be written 1-indexed, such as <code>(1,1,3)</code>, or shifted to nonnegative labels, such as <code>(0,0,2)</code>. Pak–Stanley labels in the arrangement literature often use the nonnegative convention.</p>
+            </details>
+          </div>
+          <div class="card">
+            <div class="diagram" aria-label="Schematic A2 Shi arrangement">
+              <svg viewBox="0 0 620 430" role="img" aria-labelledby="shiTitle shiDesc">
+                <title id="shiTitle">A schematic A2 Shi arrangement</title>
+                <desc id="shiDesc">Six lines in three parallel families divide the plane into chambers, with sample Pak-Stanley labels.</desc>
+                <defs>
+                  <marker id="arr2" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#f9c74f"/></marker>
+                </defs>
+                <rect width="620" height="430" rx="20" fill="rgba(0,0,0,.08)"/>
+                <g stroke="rgba(255,255,255,.18)" stroke-width="1">
+                  <path d="M0 370 L620 370"/><path d="M0 310 L620 310"/><path d="M0 250 L620 250"/><path d="M0 190 L620 190"/><path d="M0 130 L620 130"/><path d="M0 70 L620 70"/>
+                  <path d="M70 0 L70 430"/><path d="M150 0 L150 430"/><path d="M230 0 L230 430"/><path d="M310 0 L310 430"/><path d="M390 0 L390 430"/><path d="M470 0 L470 430"/><path d="M550 0 L550 430"/>
+                </g>
+                <g stroke-linecap="round" stroke-width="4">
+                  <path d="M170 -40 L170 470" stroke="#7de2d1"/>
+                  <path d="M285 -40 L285 470" stroke="#7de2d1" opacity=".75"/>
+                  <path d="M-20 150 L650 150" stroke="#a78bfa"/>
+                  <path d="M-20 265 L650 265" stroke="#a78bfa" opacity=".75"/>
+                  <path d="M40 420 L530 -50" stroke="#f2777a"/>
+                  <path d="M150 440 L640 -30" stroke="#f2777a" opacity=".75"/>
+                </g>
+                <g font-family="Inter, system-ui, sans-serif" font-size="13" fill="#c7c0b4">
+                  <text x="188" y="26">x₁−x₂ = 0,1</text>
+                  <text x="414" y="142">x₂−x₃ = 0,1</text>
+                  <text x="440" y="350">x₁−x₃ = 0,1</text>
+                </g>
+                <g font-family="ui-monospace, monospace" font-weight="800" text-anchor="middle">
+                  <rect x="294" y="169" width="62" height="34" rx="12" fill="rgba(0,0,0,.38)" stroke="rgba(255,255,255,.18)"/><text x="325" y="191" fill="#fff" font-size="15">000</text>
+                  <rect x="211" y="169" width="62" height="34" rx="12" fill="rgba(249,199,79,.16)" stroke="rgba(249,199,79,.38)"/><text x="242" y="191" fill="#ffe29a" font-size="15">100</text>
+                  <rect x="295" y="282" width="62" height="34" rx="12" fill="rgba(167,139,250,.16)" stroke="rgba(167,139,250,.38)"/><text x="326" y="304" fill="#ddd3ff" font-size="15">010</text>
+                  <rect x="375" y="98" width="62" height="34" rx="12" fill="rgba(242,119,122,.16)" stroke="rgba(242,119,122,.38)"/><text x="406" y="120" fill="#ffd1d2" font-size="15">001</text>
+                </g>
+                <path d="M302 187 C282 187 267 187 257 187" fill="none" stroke="#f9c74f" stroke-width="3" marker-end="url(#arr2)"/>
+                <text x="260" y="223" fill="#f9c74f" font-size="13" font-family="Inter, system-ui">cross a wall → add a unit</text>
+                <g transform="translate(34 332)">
+                  <rect x="0" y="0" width="208" height="62" rx="16" fill="rgba(0,0,0,.24)" stroke="rgba(255,255,255,.12)"/>
+                  <text x="16" y="25" fill="#fff" font-size="14" font-family="Inter, system-ui" font-weight="800">Parking test</text>
+                  <text x="16" y="47" fill="#c7c0b4" font-size="13" font-family="ui-monospace, monospace">sort aᵢ; require aᵢ ≤ i</text>
+                </g>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div class="callout yellow">This portal is combinatorial. The quantum-mechanical appearances below usually use the same hyperplane-arrangement geometry, but not necessarily the Pak–Stanley labeling itself.</div>
+      </div>
+    </section>
+
+    <section id="calogero">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <div class="kicker">Direct quantum mechanics</div>
+            <h2>Calogero–Moser: hyperplanes as collision walls</h2>
+          </div>
+        </div>
+        <div class="grid two">
+          <div class="card">
+            <div class="diagram" aria-label="Calogero-Moser collision hyperplanes">
+              <svg viewBox="0 0 620 420" role="img" aria-labelledby="cmTitle cmDesc">
+                <title id="cmTitle">Collision hyperplanes in the Calogero-Moser system</title>
+                <desc id="cmDesc">Three particles on a line; in configuration space, the hyperplanes x_i=x_j form reflection walls.</desc>
+                <rect width="620" height="420" rx="20" fill="rgba(0,0,0,.08)"/>
+                <g transform="translate(58 55)">
+                  <line x1="0" y1="70" x2="490" y2="70" stroke="rgba(255,255,255,.4)" stroke-width="3"/>
+                  <g font-family="Inter, system-ui, sans-serif" text-anchor="middle">
+                    <circle cx="80" cy="70" r="18" fill="#7de2d1"/><text x="80" y="113" fill="#c7c0b4">x₁</text>
+                    <circle cx="235" cy="70" r="18" fill="#f9c74f"/><text x="235" y="113" fill="#c7c0b4">x₂</text>
+                    <circle cx="390" cy="70" r="18" fill="#f2777a"/><text x="390" y="113" fill="#c7c0b4">x₃</text>
+                  </g>
+                  <text x="245" y="20" fill="#fff" font-family="Inter, system-ui" font-weight="800" text-anchor="middle">particles on a line</text>
+                </g>
+                <g transform="translate(126 190)">
+                  <circle cx="180" cy="105" r="96" fill="rgba(125,226,209,.04)" stroke="rgba(255,255,255,.14)"/>
+                  <g stroke-width="4" stroke-linecap="round">
+                    <line x1="180" y1="-6" x2="180" y2="216" stroke="#7de2d1"/>
+                    <line x1="84" y1="160" x2="276" y2="50" stroke="#a78bfa"/>
+                    <line x1="84" y1="50" x2="276" y2="160" stroke="#f2777a"/>
+                  </g>
+                  <g font-family="Inter, system-ui" fill="#c7c0b4" font-size="13">
+                    <text x="193" y="15">x₁=x₂</text>
+                    <text x="257" y="55">x₂=x₃</text>
+                    <text x="255" y="165">x₁=x₃</text>
+                  </g>
+                  <text x="180" y="238" fill="#fff" font-family="Inter, system-ui" font-weight="800" text-anchor="middle">type-A reflection arrangement</text>
+                </g>
+              </svg>
+            </div>
+          </div>
+          <div class="card">
+            <div class="badge-row"><span class="badge direct">Direct</span><span class="badge">Hamiltonian</span><span class="badge">reflection arrangements</span></div>
+            <h3>The physical reading</h3>
+            <p class="muted">For <code>n</code> particles on a line, the type-A hyperplanes <code>xᵢ = xⱼ</code> are collision loci. In the rational quantum Calogero–Moser Hamiltonian, those loci carry inverse-square singularities.</p>
+            <div class="equation">H = Σᵢ ∂²/∂xᵢ² − c(c+1) Σᵢ≠ⱼ 1/(xᵢ − xⱼ)²</div>
+            <p class="muted">This is one of the cleanest places where the same geometry as the braid arrangement becomes a quantum Hamiltonian. Rational Cherednik algebras package these reflection-arrangement/Dunkl-operator structures and connect them to Calogero–Moser spaces.<sup><a href="#ref-etingof">[2]</a></sup></p>
+            <div class="callout">For a physicist: the chambers are ordering sectors; the hyperplanes are singular scattering walls. “Quantization-like” behavior is not just analogy here—the arrangement sits inside the operator theory.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="bethe">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <div class="kicker">Integrable models</div>
+            <h2>Varchenko: arrangement → Hamiltonians</h2>
+          </div>
+        </div>
+        <div class="grid two">
+          <div class="card">
+            <h3>A geometric machine for Bethe/Gaudin data</h3>
+            <p class="muted">Varchenko’s construction assigns a quantum integrable model to a weighted affine hyperplane arrangement. Under stated assumptions, the Hamiltonian algebra is isomorphic to functions on the critical set of a master function; in a discriminantal case, this recovers the Gaudin Bethe algebra.<sup><a href="#ref-varchenko">[3]</a></sup></p>
+            <div class="equation">weighted arrangement 𝒜 → master function Φ → Crit(Φ) → commuting Hamiltonians</div>
+            <p class="muted">The intuition is close to semiclassical/Bethe thinking: solve a quantum spectral problem by reducing it to critical point equations for auxiliary variables.</p>
+          </div>
+          <div class="card">
+            <div class="diagram" aria-label="Arrangement to Bethe algebra flow diagram">
+              <svg viewBox="0 0 660 390" role="img" aria-labelledby="betheTitle betheDesc">
+                <title id="betheTitle">Flow from weighted arrangements to Bethe algebras</title>
+                <desc id="betheDesc">A diagram showing a weighted affine arrangement feeding a master function, critical points, and a commuting Hamiltonian algebra.</desc>
+                <defs><marker id="arr3" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#7de2d1"/></marker></defs>
+                <rect width="660" height="390" rx="20" fill="rgba(0,0,0,.08)"/>
+                <g transform="translate(35 45)">
+                  <rect x="0" y="0" width="150" height="260" rx="22" fill="rgba(125,226,209,.08)" stroke="rgba(125,226,209,.35)"/>
+                  <g stroke-width="3" stroke-linecap="round">
+                    <line x1="20" y1="42" x2="130" y2="42" stroke="#7de2d1"/>
+                    <line x1="20" y1="96" x2="130" y2="126" stroke="#f9c74f"/>
+                    <line x1="65" y1="20" x2="105" y2="236" stroke="#a78bfa"/>
+                    <line x1="10" y1="210" x2="138" y2="92" stroke="#f2777a"/>
+                  </g>
+                  <text x="75" y="294" text-anchor="middle" fill="#fff" font-family="Inter, system-ui" font-weight="800">weighted affine arrangement</text>
+                </g>
+                <g fill="none" stroke="#7de2d1" stroke-width="3" marker-end="url(#arr3)">
+                  <path d="M210 176 H284"/><path d="M400 176 H480"/>
+                </g>
+                <g font-family="Inter, system-ui" text-anchor="middle">
+                  <rect x="285" y="108" width="118" height="136" rx="20" fill="rgba(249,199,79,.1)" stroke="rgba(249,199,79,.38)"/>
+                  <text x="344" y="154" fill="#fff" font-weight="850" font-size="18">Φ</text>
+                  <text x="344" y="181" fill="#ffe29a" font-size="13">master</text><text x="344" y="200" fill="#ffe29a" font-size="13">function</text>
+                  <rect x="484" y="58" width="138" height="100" rx="20" fill="rgba(167,139,250,.1)" stroke="rgba(167,139,250,.38)"/>
+                  <text x="553" y="97" fill="#fff" font-weight="850">Crit(Φ)</text><text x="553" y="122" fill="#c7c0b4" font-size="13">Bethe roots</text>
+                  <rect x="484" y="205" width="138" height="104" rx="20" fill="rgba(125,226,209,.1)" stroke="rgba(125,226,209,.38)"/>
+                  <text x="553" y="244" fill="#fff" font-weight="850">Bethe algebra</text><text x="553" y="269" fill="#c7c0b4" font-size="13">Hamiltonians</text>
+                  <path d="M553 158 V202" stroke="#7de2d1" stroke-width="3" marker-end="url(#arr3)" fill="none"/>
+                </g>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="kz">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <div class="kicker">CFT / monodromy</div>
+            <h2>KZ equations: hyperplane complements and conformal blocks</h2>
+          </div>
+        </div>
+        <div class="grid two">
+          <div class="card">
+            <div class="diagram" aria-label="KZ hypergeometric integral diagram">
+              <svg viewBox="0 0 620 420" role="img" aria-labelledby="kzTitle kzDesc">
+                <title id="kzTitle">KZ hypergeometric integral over a hyperplane complement</title>
+                <desc id="kzDesc">Punctures on a sphere and integration variables avoid collision hyperplanes t=z_i and t_a=t_b.</desc>
+                <rect width="620" height="420" rx="20" fill="rgba(0,0,0,.08)"/>
+                <g transform="translate(78 32)">
+                  <circle cx="215" cy="172" r="146" fill="rgba(125,226,209,.05)" stroke="rgba(255,255,255,.2)" stroke-width="2"/>
+                  <ellipse cx="215" cy="172" rx="146" ry="36" fill="none" stroke="rgba(255,255,255,.13)"/>
+                  <path d="M115 205 C165 87 320 90 344 204 C290 254 177 254 115 205Z" fill="none" stroke="#7de2d1" stroke-width="4" opacity=".9"/>
+                  <g font-family="Inter, system-ui" text-anchor="middle">
+                    <circle cx="112" cy="156" r="9" fill="#f2777a"/><text x="112" y="135" fill="#fff">z₁</text>
+                    <circle cx="226" cy="85" r="9" fill="#f9c74f"/><text x="226" y="65" fill="#fff">z₂</text>
+                    <circle cx="345" cy="160" r="9" fill="#a78bfa"/><text x="345" y="138" fill="#fff">z₃</text>
+                    <circle cx="180" cy="225" r="8" fill="#7de2d1"/><text x="180" y="253" fill="#c7c0b4">t</text>
+                    <circle cx="288" cy="220" r="8" fill="#7de2d1"/><text x="288" y="248" fill="#c7c0b4">t′</text>
+                  </g>
+                  <g stroke="#f9c74f" stroke-dasharray="6 7" stroke-width="2" opacity=".8">
+                    <line x1="180" y1="225" x2="112" y2="156"/><line x1="180" y1="225" x2="226" y2="85"/><line x1="288" y1="220" x2="345" y2="160"/><line x1="180" y1="225" x2="288" y2="220"/>
+                  </g>
+                  <text x="215" y="356" fill="#fff" font-weight="850" font-family="Inter, system-ui" text-anchor="middle">avoid t = zᵢ and t = t′ hyperplanes</text>
+                </g>
+              </svg>
+            </div>
+          </div>
+          <div class="card">
+            <div class="badge-row"><span class="badge direct">Direct</span><span class="badge">CFT</span><span class="badge">monodromy</span></div>
+            <h3>The physics reading</h3>
+            <p class="muted">In WZW/CFT language, KZ equations govern conformal blocks. Schechtman–Varchenko’s work uses hyperplane complements, local systems, Orlik–Solomon-style complexes, and generalized hypergeometric integrals to build solutions and Lie-algebra homology links.<sup><a href="#ref-sv">[4]</a></sup></p>
+            <div class="equation">integration variables avoid divisors like tₐ = zᵢ and tₐ = t_b</div>
+            <p class="muted">This is where arrangements feel like “quantization data”: the important information is not just the equations <code>H = 0</code>, but the complement, monodromy around singular walls, and how differential forms transform.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="gauge">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <div class="kicker">Gauge theory</div>
+            <h2>3d N=4: hyperplanes organize chambers and modules</h2>
+          </div>
+        </div>
+        <div class="grid two">
+          <div class="card">
+            <h3>Walls in parameter space</h3>
+            <p class="muted">In abelian 3d <code>𝒩 = 4</code> gauge theories, hyperplane arrangements make certain Higgs/Coulomb branch and boundary-condition constructions explicit. In Omega backgrounds, boundary conditions define modules for quantized algebras of chiral Higgs- and Coulomb-branch operators.<sup><a href="#ref-bdgh">[5]</a></sup></p>
+            <div class="equation">chambers ↔ boundary conditions / wall crossing / mirror-symmetric data</div>
+            <p class="muted">This is not elementary nonrelativistic QM, but it is a bona fide quantum-field-theoretic use of arrangements.</p>
+          </div>
+          <div class="card">
+            <div class="diagram" aria-label="3d N=4 hyperplane arrangement chamber diagram">
+              <svg viewBox="0 0 650 410" role="img" aria-labelledby="gaugeTitle gaugeDesc">
+                <title id="gaugeTitle">Hyperplanes in parameter space for 3d N=4 gauge theory</title>
+                <desc id="gaugeDesc">FI and mass parameter space sliced by hyperplanes into chambers, with wall crossing and mirror symmetry annotation.</desc>
+                <rect width="650" height="410" rx="20" fill="rgba(0,0,0,.08)"/>
+                <g transform="translate(70 55)">
+                  <rect x="0" y="0" width="500" height="280" rx="22" fill="rgba(255,255,255,.03)" stroke="rgba(255,255,255,.16)"/>
+                  <g stroke-width="4" stroke-linecap="round">
+                    <line x1="120" y1="10" x2="120" y2="270" stroke="#7de2d1"/>
+                    <line x1="260" y1="10" x2="260" y2="270" stroke="#7de2d1" opacity=".72"/>
+                    <line x1="18" y1="96" x2="482" y2="96" stroke="#a78bfa"/>
+                    <line x1="18" y1="188" x2="482" y2="188" stroke="#a78bfa" opacity=".72"/>
+                    <line x1="45" y1="254" x2="450" y2="22" stroke="#f2777a"/>
+                  </g>
+                  <g font-family="Inter, system-ui" fill="#c7c0b4" font-size="13">
+                    <text x="128" y="28">mᵢ = 0</text><text x="275" y="266">mⱼ = 0</text>
+                    <text x="350" y="89">ζₐ = 0</text><text x="40" y="181">wall</text>
+                    <text x="350" y="44">mixed wall</text>
+                  </g>
+                  <g font-family="Inter, system-ui" text-anchor="middle" font-weight="850">
+                    <rect x="145" y="116" width="88" height="48" rx="15" fill="rgba(125,226,209,.12)" stroke="rgba(125,226,209,.35)"/><text x="189" y="147" fill="#fff">chamber</text>
+                    <rect x="292" y="207" width="98" height="48" rx="15" fill="rgba(249,199,79,.12)" stroke="rgba(249,199,79,.35)"/><text x="341" y="238" fill="#fff">module</text>
+                  </g>
+                  <path d="M228 138 C260 148 291 178 322 211" fill="none" stroke="#f9c74f" stroke-width="3" stroke-dasharray="6 6"/>
+                  <text x="250" y="326" fill="#fff" font-family="Inter, system-ui" font-weight="850" text-anchor="middle">mass/FI parameter space cut into chambers</text>
+                </g>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="feynman">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <div class="kicker">QFT graphs</div>
+            <h2>Feynman graphs: spanning trees and hyperplane geometry</h2>
+          </div>
+        </div>
+        <div class="grid two">
+          <div class="card">
+            <div class="diagram" aria-label="Feynman graph polynomial diagram">
+              <svg viewBox="0 0 680 440" role="img" aria-labelledby="fgTitle fgDesc">
+                <title id="fgTitle">A graph and its spanning-tree Symanzik polynomial</title>
+                <desc id="fgDesc">A 3-vertex 4-edge graph has spanning trees; the first Symanzik polynomial sums products over edges not in each tree.</desc>
+                <rect width="680" height="440" rx="20" fill="rgba(0,0,0,.08)"/>
+                <g transform="translate(46 55)">
+                  <text x="142" y="0" fill="#fff" font-family="Inter, system-ui" font-weight="850" text-anchor="middle">graph G</text>
+                  <g stroke="rgba(255,255,255,.55)" stroke-width="5" fill="none" stroke-linecap="round">
+                    <line x1="42" y1="158" x2="142" y2="62"/>
+                    <line x1="142" y1="62" x2="242" y2="158"/>
+                    <path d="M42 158 C98 110 190 110 242 158" stroke="#7de2d1"/>
+                    <path d="M42 158 C110 230 178 230 242 158" stroke="#f9c74f"/>
+                  </g>
+                  <g fill="#11131b" stroke="#fff" stroke-width="2">
+                    <circle cx="42" cy="158" r="15"/><circle cx="142" cy="62" r="15"/><circle cx="242" cy="158" r="15"/>
+                  </g>
+                  <g font-family="ui-monospace, monospace" fill="#fff" font-size="14" font-weight="800">
+                    <text x="80" y="100">α₁</text><text x="202" y="100">α₂</text><text x="142" y="122" fill="#7de2d1">α₃</text><text x="142" y="238" fill="#f9c74f">α₄</text>
+                  </g>
+                </g>
+                <g transform="translate(350 50)" font-family="Inter, system-ui">
+                  <rect x="0" y="0" width="280" height="315" rx="22" fill="rgba(255,255,255,.04)" stroke="rgba(255,255,255,.15)"/>
+                  <text x="20" y="36" fill="#fff" font-weight="850">First Symanzik / graph polynomial</text>
+                  <text x="20" y="72" fill="#c7c0b4" font-size="15">Ψ_G = Σ over spanning trees T</text>
+                  <text x="20" y="103" fill="#c7c0b4" font-size="15">multiply αₑ for e not in T</text>
+                  <g font-family="ui-monospace, monospace" font-size="14" fill="#f7ead1">
+                    <text x="20" y="147">T={1,2} → α₃α₄</text>
+                    <text x="20" y="174">T={1,3} → α₂α₄</text>
+                    <text x="20" y="201">T={1,4} → α₂α₃</text>
+                    <text x="20" y="228">T={2,3} → α₁α₄</text>
+                    <text x="20" y="255">T={2,4} → α₁α₃</text>
+                  </g>
+                  <rect x="18" y="276" width="244" height="26" rx="13" fill="rgba(125,226,209,.12)"/>
+                  <text x="140" y="295" fill="#bff8ef" font-family="ui-monospace, monospace" font-size="13" text-anchor="middle">Ψ = α₃α₄ + α₂α₄ + ...</text>
+                </g>
+              </svg>
+            </div>
+          </div>
+          <div class="card">
+            <div class="badge-row"><span class="badge direct">Direct QFT graph combinatorics</span><span class="badge indirect">parking-adjacent</span></div>
+            <h3>What is already standard</h3>
+            <p class="muted">After Feynman parametrization, scalar multi-loop integrals are characterized by the first and second Symanzik polynomials. A standard review emphasizes spanning trees, spanning forests, deletion–contraction, matrix-tree theorems, Dodgson identities, and matroids.<sup><a href="#ref-bogner">[6]</a></sup></p>
+            <div class="equation">Ψ_G(α) = Σ_{T spanning tree} ∏_{e∉T} α_e</div>
+            <p class="muted">Bloch–Esnault–Kreimer study graph hypersurfaces defined by these graph polynomials, with the first graph polynomial expressed as a spanning-tree sum.<sup><a href="#ref-bek">[7]</a></sup></p>
+            <div class="callout yellow">This is the safest bridge to parking functions: parking functions are tightly related to spanning trees, but the full physical Feynman diagram also needs fields, masses, momenta, numerators, symmetry factors, and regularization data.</div>
+          </div>
+        </div>
+        <div class="grid two" style="margin-top:18px">
+          <div class="card soft">
+            <h3>Hyperplanes in modern cosmological-integral geometry</h3>
+            <p class="muted">A newer amplitudes/cosmology line associates wavefunction coefficients and FRW integrals with hyperplane arrangements, twisted cohomology, bounded chambers, cuts, and graph tubings. This is a more literal “Feynman diagram ↔ hyperplane arrangement” appearance, but in cosmological correlator geometry rather than the default textbook QFT pipeline.<sup><a href="#ref-cosmo">[8]</a></sup></p>
+          </div>
+          <div class="card soft">
+            <div class="diagram" aria-label="Feynman diagram to hyperplane cuts">
+              <svg viewBox="0 0 620 230" role="img" aria-labelledby="cosmoTitle cosmoDesc">
+                <title id="cosmoTitle">Feynman-like graph to hyperplane arrangement and cuts</title>
+                <desc id="cosmoDesc">A graph maps to linear divisors, which form hyperplanes with bounded chamber cuts.</desc>
+                <defs><marker id="arr4" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#7de2d1"/></marker></defs>
+                <rect width="620" height="230" rx="20" fill="rgba(0,0,0,.08)"/>
+                <g transform="translate(38 60)">
+                  <g stroke="#fff" stroke-width="4" fill="none" opacity=".75"><line x1="35" y1="50" x2="95" y2="50"/><path d="M95 50 C125 5 175 5 205 50"/><path d="M95 50 C125 95 175 95 205 50"/><line x1="205" y1="50" x2="265" y2="50"/></g>
+                  <g fill="#11131b" stroke="#fff" stroke-width="2"><circle cx="95" cy="50" r="11"/><circle cx="205" cy="50" r="11"/></g>
+                  <text x="150" y="125" fill="#fff" font-family="Inter, system-ui" font-weight="850" text-anchor="middle">graph</text>
+                </g>
+                <path d="M320 110 H377" stroke="#7de2d1" stroke-width="3" marker-end="url(#arr4)"/>
+                <g transform="translate(398 32)">
+                  <rect x="0" y="0" width="172" height="162" rx="20" fill="rgba(125,226,209,.06)" stroke="rgba(255,255,255,.14)"/>
+                  <g stroke-width="3" stroke-linecap="round">
+                    <line x1="25" y1="135" x2="150" y2="35" stroke="#7de2d1"/>
+                    <line x1="20" y1="48" x2="150" y2="122" stroke="#f2777a"/>
+                    <line x1="32" y1="85" x2="152" y2="85" stroke="#a78bfa"/>
+                    <line x1="86" y1="18" x2="86" y2="144" stroke="#f9c74f"/>
+                  </g>
+                  <polygon points="86,85 110,72 112,98" fill="rgba(125,226,209,.22)" stroke="#7de2d1"/>
+                  <text x="86" y="188" fill="#fff" font-family="Inter, system-ui" font-weight="850" text-anchor="middle">linear divisors / cuts</text>
+                </g>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="sandpile">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <div class="kicker">Parking functions in physics-adjacent models</div>
+            <h2>Sandpiles: where parking functions feel physical</h2>
+          </div>
+        </div>
+        <div class="grid two">
+          <div class="card">
+            <h3>Graph parking functions and chip-firing</h3>
+            <p class="muted">Postnikov–Shapiro construct graph algebras whose dimensions equal the number of spanning trees of <code>G</code>, with monomial bases indexed by <code>G</code>-parking functions; they also point to their natural appearance in the abelian sandpile model.<sup><a href="#ref-ps">[9]</a></sup></p>
+            <div class="equation">G-parking functions ↔ spanning-tree count ↔ sandpile/chip-firing data</div>
+            <p class="muted">The abelian sandpile model is a statistical-physics model of self-organized criticality. In 2D, it is closely tied to logarithmic conformal field theory with central charge <code>c = −2</code> in the literature.<sup><a href="#ref-sandpile">[10]</a></sup></p>
+          </div>
+          <div class="card">
+            <div class="diagram" aria-label="Parking functions, sandpile, spanning tree diagram">
+              <svg viewBox="0 0 660 410" role="img" aria-labelledby="sandTitle sandDesc">
+                <title id="sandTitle">G-parking functions through sandpiles and spanning trees</title>
+                <desc id="sandDesc">A graph with chips topples into a recurrent sandpile/spanning tree label and then a parking function.</desc>
+                <defs><marker id="arr5" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#f9c74f"/></marker></defs>
+                <rect width="660" height="410" rx="20" fill="rgba(0,0,0,.08)"/>
+                <g transform="translate(40 58)">
+                  <rect x="0" y="0" width="170" height="222" rx="22" fill="rgba(167,139,250,.08)" stroke="rgba(167,139,250,.3)"/>
+                  <g stroke="rgba(255,255,255,.5)" stroke-width="3" fill="none"><line x1="85" y1="48" x2="45" y2="120"/><line x1="85" y1="48" x2="125" y2="120"/><line x1="45" y1="120" x2="125" y2="120"/><line x1="45" y1="120" x2="85" y2="174"/><line x1="125" y1="120" x2="85" y2="174"/></g>
+                  <g font-family="Inter, system-ui" text-anchor="middle" font-weight="850">
+                    <circle cx="85" cy="48" r="19" fill="#a78bfa"/><text x="85" y="54" fill="#11131b">2</text>
+                    <circle cx="45" cy="120" r="19" fill="#7de2d1"/><text x="45" y="126" fill="#11131b">0</text>
+                    <circle cx="125" cy="120" r="19" fill="#f9c74f"/><text x="125" y="126" fill="#11131b">3</text>
+                    <circle cx="85" cy="174" r="19" fill="#f2777a"/><text x="85" y="180" fill="#11131b">sink</text>
+                  </g>
+                  <text x="85" y="252" fill="#fff" font-family="Inter, system-ui" font-weight="850" text-anchor="middle">chip configuration</text>
+                </g>
+                <path d="M235 168 H300" stroke="#f9c74f" stroke-width="3" marker-end="url(#arr5)"/>
+                <g transform="translate(320 58)">
+                  <rect x="0" y="0" width="270" height="222" rx="22" fill="rgba(249,199,79,.08)" stroke="rgba(249,199,79,.3)"/>
+                  <g transform="translate(25 38)" stroke-width="4" stroke-linecap="round">
+                    <line x1="70" y1="30" x2="35" y2="104" stroke="#fff"/><line x1="70" y1="30" x2="112" y2="104" stroke="#fff"/><line x1="112" y1="104" x2="72" y2="158" stroke="#fff"/>
+                    <line x1="35" y1="104" x2="72" y2="158" stroke="rgba(255,255,255,.18)" stroke-dasharray="5 6"/>
+                    <circle cx="70" cy="30" r="12" fill="#a78bfa"/><circle cx="35" cy="104" r="12" fill="#7de2d1"/><circle cx="112" cy="104" r="12" fill="#f9c74f"/><circle cx="72" cy="158" r="12" fill="#f2777a"/>
+                  </g>
+                  <g font-family="Inter, system-ui" fill="#fff">
+                    <text x="160" y="72" font-weight="850">burning / tree</text>
+                    <text x="160" y="102" fill="#c7c0b4" font-size="14">a recurrent state can</text>
+                    <text x="160" y="123" fill="#c7c0b4" font-size="14">be related to tree data</text>
+                    <rect x="148" y="145" width="92" height="38" rx="13" fill="rgba(0,0,0,.26)" stroke="rgba(255,255,255,.12)"/>
+                    <text x="194" y="170" text-anchor="middle" font-family="ui-monospace, monospace" font-weight="850" fill="#ffe29a">(0,1,2)</text>
+                  </g>
+                  <text x="135" y="252" fill="#fff" font-family="Inter, system-ui" font-weight="850" text-anchor="middle">G-parking label</text>
+                </g>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div class="callout">This is the parking-function connection that feels most “physical,” but it is statistical/critical phenomena rather than ordinary Hilbert-space quantum mechanics.</div>
+      </div>
+    </section>
+
+    <section id="cherednik">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <div class="kicker">Representation theory</div>
+            <h2>Parking spaces meet Cherednik algebras</h2>
+          </div>
+        </div>
+        <div class="grid two">
+          <div class="card">
+            <div class="diagram" aria-label="W parking spaces and Cherednik diagram">
+              <svg viewBox="0 0 660 410" role="img" aria-labelledby="chTitle chDesc">
+                <title id="chTitle">W-parking spaces and rational Cherednik algebras</title>
+                <desc id="chDesc">Coxeter reflection arrangement, root lattice torus, W-parking functions, and rational Cherednik algebra representation theory.</desc>
+                <defs><marker id="arr6" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#7de2d1"/></marker></defs>
+                <rect width="660" height="410" rx="20" fill="rgba(0,0,0,.08)"/>
+                <g transform="translate(45 55)">
+                  <rect x="0" y="0" width="170" height="210" rx="22" fill="rgba(125,226,209,.06)" stroke="rgba(125,226,209,.3)"/>
+                  <g transform="translate(85 94)" stroke-width="3" stroke-linecap="round">
+                    <line x1="-66" y1="0" x2="66" y2="0" stroke="#7de2d1"/><line x1="-45" y1="-56" x2="45" y2="56" stroke="#a78bfa"/><line x1="-45" y1="56" x2="45" y2="-56" stroke="#f2777a"/>
+                  </g>
+                  <text x="85" y="244" fill="#fff" font-family="Inter, system-ui" font-weight="850" text-anchor="middle">reflection group W</text>
+                </g>
+                <path d="M238 155 H302" stroke="#7de2d1" stroke-width="3" marker-end="url(#arr6)"/>
+                <g transform="translate(322 55)">
+                  <rect x="0" y="0" width="150" height="210" rx="22" fill="rgba(249,199,79,.06)" stroke="rgba(249,199,79,.3)"/>
+                  <g transform="translate(25 34)">
+                    <g stroke="rgba(255,255,255,.13)"><path d="M0 0 H100"/><path d="M0 28 H100"/><path d="M0 56 H100"/><path d="M0 84 H100"/><path d="M0 112 H100"/><path d="M0 140 H100"/><path d="M0 0 V140"/><path d="M25 0 V140"/><path d="M50 0 V140"/><path d="M75 0 V140"/><path d="M100 0 V140"/></g>
+                    <g fill="#f9c74f"><circle cx="0" cy="0" r="4"/><circle cx="25" cy="28" r="4"/><circle cx="50" cy="56" r="4"/><circle cx="75" cy="84" r="4"/><circle cx="100" cy="112" r="4"/><circle cx="25" cy="140" r="4"/><circle cx="75" cy="28" r="4"/><circle cx="50" cy="112" r="4"/></g>
+                  </g>
+                  <text x="75" y="244" fill="#fff" font-family="Inter, system-ui" font-weight="850" text-anchor="middle">Q/(h+1)Q</text>
+                </g>
+                <path d="M492 155 H552" stroke="#7de2d1" stroke-width="3" marker-end="url(#arr6)"/>
+                <g transform="translate(516 55)">
+                  <rect x="0" y="0" width="100" height="210" rx="22" fill="rgba(167,139,250,.06)" stroke="rgba(167,139,250,.3)"/>
+                  <text x="50" y="82" fill="#fff" font-family="Inter, system-ui" font-weight="850" text-anchor="middle">parking</text>
+                  <text x="50" y="106" fill="#fff" font-family="Inter, system-ui" font-weight="850" text-anchor="middle">space</text>
+                  <text x="50" y="139" fill="#c7c0b4" font-family="ui-monospace, monospace" font-size="13" text-anchor="middle">W-module</text>
+                  <text x="50" y="244" fill="#fff" font-family="Inter, system-ui" font-weight="850" text-anchor="middle">RCA link</text>
+                </g>
+                <text x="330" y="338" fill="#c7c0b4" font-family="Inter, system-ui" text-anchor="middle">same reflection data as Calogero–Moser/Cherednik, but seen through combinatorial representations</text>
+              </svg>
+            </div>
+          </div>
+          <div class="card">
+            <div class="badge-row"><span class="badge indirect">Indirect but real</span><span class="badge">representation theory</span><span class="badge">Cherednik</span></div>
+            <h3>The algebraic bridge</h3>
+            <p class="muted">Armstrong–Reiner–Rhoades define <code>W</code>-parking functions using the finite torus <code>Q/(h+1)Q</code> for a Weyl group <code>W</code>, and explicitly connect parking spaces to enumerative combinatorics, diagonal harmonics, and rational Cherednik algebras.<sup><a href="#ref-arr">[11]</a></sup></p>
+            <p class="muted">Dotsenko also constructs symmetric-group representations isomorphic to parking-function modules using lattice vertex operators, with conjectural links to Hilbert schemes and rational Cherednik algebras.<sup><a href="#ref-dotsenko">[12]</a></sup></p>
+            <div class="callout">This is a good place to say “parking functions are near quantization,” but the path is algebraic: representation categories, Hilbert schemes, and Cherednik algebras—not usually textbook energy eigenstates.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="takeaway">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <div class="kicker">Takeaway</div>
+            <h2>What to remember</h2>
+          </div>
+        </div>
+        <div class="card">
+          <table>
+            <thead>
+              <tr><th>Connection</th><th>How direct?</th><th>Physics intuition</th><th>Parking-function role</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Calogero–Moser / Cherednik</td>
+                <td><span class="meter"><span class="pip on"></span><span class="pip on"></span><span class="pip on"></span></span>Very direct</td>
+                <td>Hyperplanes are singular collision walls in a quantum Hamiltonian.</td>
+                <td>Mostly via later Cherednik/Catalan representation theory.</td>
+              </tr>
+              <tr>
+                <td>Gaudin / Bethe via arrangements</td>
+                <td><span class="meter"><span class="pip on"></span><span class="pip on"></span><span class="pip on"></span></span>Very direct</td>
+                <td>Critical points of arrangement master functions encode integrable spectral data.</td>
+                <td>Not central.</td>
+              </tr>
+              <tr>
+                <td>KZ / WZW CFT</td>
+                <td><span class="meter"><span class="pip on"></span><span class="pip on"></span><span class="pip on"></span></span>Direct</td>
+                <td>Hyperplane complements organize hypergeometric integrals and monodromy.</td>
+                <td>Not central.</td>
+              </tr>
+              <tr>
+                <td>3d N=4 gauge theory</td>
+                <td><span class="meter"><span class="pip on"></span><span class="pip on"></span><span class="pip"></span></span>Direct but specialized</td>
+                <td>Arrangements cut mass/FI spaces into chambers; boundary conditions give modules for quantized algebras.</td>
+                <td>Mostly separate.</td>
+              </tr>
+              <tr>
+                <td>Feynman graph polynomials</td>
+                <td><span class="meter"><span class="pip warn on"></span><span class="pip warn on"></span><span class="pip"></span></span>Direct for graphs, indirect for parking</td>
+                <td>Symanzik polynomials are graph-combinatorial objects built from trees/forests.</td>
+                <td>Tree labels may be parking-function-like, but not a standard full diagram classifier.</td>
+              </tr>
+              <tr>
+                <td>Sandpile / LCFT</td>
+                <td><span class="meter"><span class="pip warn on"></span><span class="pip warn on"></span><span class="pip"></span></span>Statistical-field-theory route</td>
+                <td>Critical lattice model with CFT scaling behavior.</td>
+                <td>G-parking functions naturally index chip-firing/spanning-tree data.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="grid two" style="margin-top:18px">
+          <div class="card soft">
+            <h3>The concise answer to your original hunch</h3>
+            <p class="muted">Hyperplanes really do behave like a quantization scaffold in several existing formalisms: they define singular walls, monodromy data, Bethe critical equations, chamber structures, and integration cycles.</p>
+          </div>
+          <div class="card soft">
+            <h3>The caution</h3>
+            <p class="muted">Parking functions show up most robustly as discrete labels for tree/chip-firing/Cherednik representation data. That is physically meaningful, but one categorical layer removed from “state in a Hilbert space” or “Feynman diagram type.”</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="refs">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <div class="kicker">Sources</div>
+            <h2>Bibliography behind the demo</h2>
+          </div>
+          <p class="muted" style="max-width:420px">Links are included so the HTML stays useful offline as a reading guide, even though opening the papers requires internet access.</p>
+        </div>
+        <div class="refs">
+          <div class="ref" id="ref-stanley"><p><b>Stanley, “Hyperplane Arrangements, Parking Functions and Tree Inversions.”</b> Introduces/uses the extended Shi arrangement and Pak–Stanley-style labeling background. <a href="https://math.mit.edu/~rstan/pubs/pubfiles/107.pdf">PDF</a></p></div>
+          <div class="ref" id="ref-etingof"><p><b>Etingof, lecture notes on Cherednik algebras / Calogero–Moser systems.</b> Gives the rational quantum Calogero–Moser Hamiltonian with inverse-square terms along <code>xᵢ − xⱼ = 0</code>. <a href="https://math.mit.edu/~etingof/73509.pdf">PDF</a></p></div>
+          <div class="ref" id="ref-varchenko"><p><b>Varchenko, “Quantum Integrable Model of an Arrangement of Hyperplanes,” SIGMA 2011.</b> Assigns a quantum integrable model to a weighted affine arrangement and relates Hamiltonians to critical points/master functions and Gaudin Bethe algebras. <a href="https://sigma-journal.com/2011/032/">SIGMA page</a></p></div>
+          <div class="ref" id="ref-sv"><p><b>Schechtman–Varchenko, “Arrangements of hyperplanes and Lie algebra homology,” Inventiones Mathematicae 1991.</b> Hyperplane complements, local systems, generalized hypergeometric integrals, and KZ-related material. <a href="https://eudml.org/doc/143938">EuDML page</a></p></div>
+          <div class="ref" id="ref-bdgh"><p><b>Bullimore–Dimofte–Gaiotto–Hilburn, “Boundaries, Mirror Symmetry, and Symplectic Duality in 3d N=4 Gauge Theory,” JHEP 2016.</b> Abelian theories use hyperplane arrangements; Omega-deformed boundary conditions define modules for quantized Higgs/Coulomb operator algebras. <a href="https://arxiv.org/abs/1603.08382">arXiv</a></p></div>
+          <div class="ref" id="ref-bogner"><p><b>Bogner–Weinzierl, “Feynman graph polynomials,” 2010.</b> Review of Symanzik polynomials, spanning trees/forests, matrix-tree theorem, deletion–contraction, Dodgson identities, and matroids. <a href="https://arxiv.org/abs/1002.3458">arXiv</a></p></div>
+          <div class="ref" id="ref-bek"><p><b>Bloch–Esnault–Kreimer, “On motives associated to graph polynomials.”</b> Studies graph hypersurfaces and gives the first graph polynomial as a spanning-tree sum. <a href="https://www.math.uchicago.edu/~bloch/graphpoly050928b.pdf">PDF</a></p></div>
+          <div class="ref" id="ref-cosmo"><p><b>Recent cosmological correlator / hyperplane arrangement work.</b> Example: “A physical basis for cosmological correlators from cuts” and related kinematic-flow papers use associated hyperplane arrangements, twisted cohomology, bounded chambers, cuts, and graph tubings. <a href="https://arxiv.org/pdf/2411.09695">PDF</a></p></div>
+          <div class="ref" id="ref-ps"><p><b>Postnikov–Shapiro, “Trees, parking functions, syzygies, and deformations of monomial ideals.”</b> Constructs graph algebras with bases indexed by <code>G</code>-parking functions and dimensions equal to spanning-tree counts; discusses sandpile links. <a href="https://arxiv.org/abs/math/0301110">arXiv</a></p></div>
+          <div class="ref" id="ref-sandpile"><p><b>Piroux–Ruelle, “Pre-logarithmic and logarithmic fields in a sandpile model.”</b> Relates the 2D abelian sandpile model to boundary logarithmic CFT with central charge <code>c = −2</code>. <a href="https://arxiv.org/abs/hep-th/0407143">arXiv</a></p></div>
+          <div class="ref" id="ref-arr"><p><b>Armstrong–Reiner–Rhoades, “Parking Spaces.”</b> Defines <code>W</code>-parking functions/parking spaces and notes connections to diagonal harmonics and rational Cherednik algebras. <a href="https://arxiv.org/abs/1204.1760">arXiv</a></p></div>
+          <div class="ref" id="ref-dotsenko"><p><b>Dotsenko, “Parking functions and vertex operators.”</b> Constructs parking-function modules using lattice vertex operators and discusses conjectural links to Hilbert schemes and rational Cherednik algebras. <a href="https://arxiv.org/abs/0809.3683">arXiv</a></p></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap tiny">
+      <p>Made as a standalone HTML explainer. The diagrams are schematic, intended to orient a physicist rather than reproduce every convention exactly. Last source check: July 3, 2026.</p>
+      <p>Tip: use <span class="kbd">Ctrl</span> + <span class="kbd">P</span> to save as PDF, or print selected sections.</p>
+    </div>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite">Filter applied.</div>
+
+  <script>
+    const buttons = [...document.querySelectorAll('.filter-btn')];
+    const toast = document.getElementById('toast');
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const focus = btn.dataset.focus;
+        document.body.dataset.focus = focus;
+        buttons.forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
+        toast.textContent = focus === 'all' ? 'Showing all connections.' : `Showing ${focus} connections.`;
+        toast.classList.add('show');
+        window.setTimeout(() => toast.classList.remove('show'), 1300);
+      });
+    });
+  </script>
+</body>
+</html>
